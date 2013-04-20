@@ -18,21 +18,24 @@
   "dependencies": {
     "noflo": "0.3.x",
     "underscore": "1.4.x",
+    "underscore.string": "2.3.x",
     "multiple-inheritance": "0.1.x"
   },
   "devDependencies": {
     "nodeunit": ">=0.6.0",
     "coffeelint": "*",
-    "coffee-script": "1.4.x"
+    "coffee-script": "1.6.x"
   },
   "noflo": {
     "components": {
-      "PacketRouter": "./components/PacketRouter.coffee",
-      "GroupRouter": "./components/GroupRouter.coffee"
+      "PacketRouter": "./components/PacketRouter.coffee"
+    },
+    "graphs": {
+      "GroupRouter": "./graphs/GroupRouter.coffee"
     }
   },
   "scripts": {
-    "pretest": "./node_modules/.bin/coffeelint -r components",
+    "pretest": "./node_modules/.bin/coffeelint -r components graphs",
     "test": "./node_modules/.bin/nodeunit test"
   }
 }

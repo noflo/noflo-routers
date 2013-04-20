@@ -20,7 +20,7 @@ setup = (component, inNames=[], outNames=[]) ->
 exports["routes incoming IPs based on IP stream position"] = (test) ->
   [c, [ins], [outA, outB, missedOut]] = setup("PacketRouter", ["in"], ["out", "out", "missed"])
 
-  test.expect(6)
+  test.expect(5)
 
   expectedMissed = ["c", "d"]
 
@@ -35,8 +35,7 @@ exports["routes incoming IPs based on IP stream position"] = (test) ->
     test.equal(data, "b")
 
   missedOut.on "data", (data) ->
-    test.equal(data, expectedMissed.shift()
-
+    test.equal(data, expectedMissed.shift())
   missedOut.on "disconnect", ->
     test.done()
 
