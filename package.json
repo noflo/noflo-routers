@@ -1,41 +1,42 @@
-{
-  "name": "noflo-routers",
-  "description": "NoFlo IP routing components",
-  "keywords": ["noflo", "routing"],
-  "author": "Kenneth Kan <kenhkan@gmail.com>",
-  "version": "0.0.1",
-  "licenses": [{
-    "type": "MIT",
-    "url": "http://opensource.org/licenses/MIT"
-  }],
-  "engines": {
-    "node": ">=0.6.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/kenhkan/noflo-routers"
-  },
-  "dependencies": {
-    "noflo": "0.3.x",
-    "underscore": "1.4.x",
-    "underscore.string": "2.3.x",
-    "multiple-inheritance": "0.1.x"
-  },
-  "devDependencies": {
-    "nodeunit": ">=0.6.0",
-    "coffeelint": "*",
-    "coffee-script": "1.6.x"
-  },
-  "noflo": {
-    "components": {
-      "PacketRouter": "./components/PacketRouter.coffee"
-    },
-    "graphs": {
-      "GroupRouter": "./graphs/GroupRouter.coffee"
+{ "name": "noflo-routers"
+, "description": "NoFlo IP routing components"
+, "keywords":
+  [ "noflo"
+  , "routing"
+  ]
+, "author": "Kenneth Kan <kenhkan@gmail.com>"
+, "version": "0.0.1"
+, "licenses":
+  [ { "type": "MIT"
+    , "url": "http://opensource.org/licenses/MIT"
     }
-  },
-  "scripts": {
-    "pretest": "./node_modules/.bin/coffeelint -r components graphs",
-    "test": "./node_modules/.bin/nodeunit test"
+  ]
+, "engines":
+  { "node": ">=0.6.0"
+  }
+, "repository":
+  { "type": "git"
+  , "url": "git://github.com/kenhkan/noflo-postgres"
+  }
+, "dependencies":
+  { "noflo": "0.3.x"
+  , "underscore": "1.4.x"
+  , "underscore.string": "2.3.x"
+  , "multiple-inheritance": "0.1.x"
+  }
+, "devDependencies":
+  { "nodeunit": ">=0.6.0"
+  , "coffeelint": "*"
+  , "coffee-script": "1.6.x"
+  }
+, "noflo":
+  { "components":
+    { "PacketRouter": "./components/PacketRouter.coffee"
+    , "GroupRouter": "./components/GroupRouter.coffee"
+    }
+  }
+, "scripts":
+  { "pretest": "./node_modules/.bin/coffeelint -r components graphs"
+  , "test": "./node_modules/.bin/nodeunit test"
   }
 }
