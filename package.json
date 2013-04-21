@@ -5,7 +5,7 @@
   , "routing"
   ]
 , "author": "Kenneth Kan <kenhkan@gmail.com>"
-, "version": "0.0.1"
+, "version": "0.0.2"
 , "licenses":
   [ { "type": "MIT"
     , "url": "http://opensource.org/licenses/MIT"
@@ -16,7 +16,7 @@
   }
 , "repository":
   { "type": "git"
-  , "url": "git://github.com/kenhkan/noflo-postgres"
+  , "url": "git://github.com/kenhkan/noflo-routers"
   }
 , "dependencies":
   { "noflo": "0.3.x"
@@ -36,7 +36,7 @@
     }
   }
 , "scripts":
-  { "pretest": "./node_modules/.bin/coffeelint -r components graphs"
+  { "pretest": "./node_modules/.bin/coffeelint -r components"
   , "test": "./node_modules/.bin/nodeunit test"
   }
 }
