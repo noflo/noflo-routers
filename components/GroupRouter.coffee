@@ -4,8 +4,8 @@ _s = require("underscore.string")
 
 class GroupRouter extends noflo.Component
 
-  description: "routes IPs based on groups, which are matched and routed
-  but not removed when forwarding"
+  description: _s.clean "routes IPs based on groups, which are matched and
+    routed but not removed when forwarding"
 
   constructor: ->
     @inPorts =
@@ -51,8 +51,8 @@ class GroupRouter extends noflo.Component
         @outPorts.missed.send(data)
       else
         @outPorts.error.send
-          message: _s.clean "No 'missed' port attached but some data do
-          not match any route"
+          message: _s.clean "No 'missed' port attached but some data do not
+          match any route"
           source:
             path: @breadcrumb
             data: data
