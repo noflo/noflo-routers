@@ -1,5 +1,4 @@
 noflo = require("noflo")
-inherit = require("multiple-inheritance")
 
 class PacketRouter extends noflo.Component
 
@@ -47,15 +46,17 @@ class PacketRouter extends noflo.Component
 
     @inPorts.in.on "disconnect", =>
       @outPorts.out.disconnect()
-      @outPorts.missed.disconnect()
+      @outPorts.missed.disconnect() if @outPorts.missed.isAttached()
 
   # Route IPs until it has exhausted outgoing sockets
   route: (operation, data) ->
-    port = if @count < @outPortCount then @outPorts.out else @outPorts.missed
+    portName = if @count < @outPortCount then "out" else "missed"
+    port = @outPorts[portName]
 
-    if operation is "endGroup"
-      port[operation](@count)
-    else
-      port[operation](data, @count)
+    if portName is "out" or port.isAttached()
+      if operation is "endGroup"
+        port[operation](@count)
+      else
+        port[operation](data, @count)
  
 exports.getComponent = -> new PacketRouter

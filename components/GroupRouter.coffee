@@ -13,8 +13,8 @@ class GroupRouter extends noflo.Component
       in: new noflo.Port
     @outPorts =
       out: new noflo.ArrayPort
+      routes: new noflo.Port
       missed: new noflo.Port
-      error: new noflo.Port
 
     @inPorts.routes.on "connect", (data) =>
       @routes = []
@@ -23,7 +23,7 @@ class GroupRouter extends noflo.Component
       if _.isArray(segments)
         @routes.push _.map segments, (segment) -> new RegExp(segment)
       else
-        @outPorts.error.send
+        throw new Error
           message: "Route must be array of segments"
           source: segments
 
@@ -40,8 +40,6 @@ class GroupRouter extends noflo.Component
           @outPorts.out.beginGroup(group, index)
       else if @outPorts.missed.isAttached()
         @outPorts.missed.beginGroup(group)
-      else
-        @outPorts.error.beginGroup(group)
 
     @inPorts.in.on "data", (data) =>
       if @matchedIndexes.length > 0
@@ -49,13 +47,6 @@ class GroupRouter extends noflo.Component
           @outPorts.out.send(data, index)
       else if @outPorts.missed.isAttached()
         @outPorts.missed.send(data)
-      else
-        @outPorts.error.send
-          message: _s.clean "No 'missed' port attached but some data do not
-          match any route"
-          source:
-            path: @breadcrumb
-            data: data
 
     @inPorts.in.on "endgroup", (group) =>
       @breadcrumb.pop()
@@ -66,13 +57,15 @@ class GroupRouter extends noflo.Component
           @outPorts.out.endGroup(index)
       else if @outPorts.missed.isAttached()
         @outPorts.missed.endGroup()
-      else
-        @outPorts.error.endGroup()
 
     @inPorts.in.on "disconnect", =>
+      if @outPorts.routes.isAttached()
+        for index in @matchedIndexes
+          @outPorts.routes.send(@routes[index])
+        @outPorts.routes.disconnect()
+
       @outPorts.out.disconnect()
       @outPorts.missed.disconnect()
-      @outPorts.error.disconnect()
 
   # Re-evaluate whether there is a route match. Pass a boolean as the
   # second parameter to indicate whether it's beginning a new group.

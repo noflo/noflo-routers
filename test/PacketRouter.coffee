@@ -20,8 +20,6 @@ setup = (component, inNames=[], outNames=[]) ->
 exports["routes incoming IPs based on IP stream position"] = (test) ->
   [c, [ins], [outA, outB, missedOut]] = setup("PacketRouter", ["in"], ["out", "out", "missed"])
 
-  test.expect(5)
-
   expectedMissed = ["c", "d"]
 
   outA.on "begingroup", (group) ->
@@ -48,7 +46,32 @@ exports["routes incoming IPs based on IP stream position"] = (test) ->
   ins.beginGroup("c")
   ins.send("c")
   ins.endGroup("c")
-  ins.beginGroup("d")
-  ins.send("d")
-  ins.endGroup("d")
+  ins.disconnect()
+
+exports["works with nested groups too"] = (test) ->
+  [c, [ins], [out]] = setup("PacketRouter", ["in"], ["out"])
+
+  expected = ["a", "b", 1, "b", "c", 2, "c", "a"]
+
+  testExpected = (item) ->
+    test.equal(item, expected.shift())
+
+  out.on "begingroup", (group) ->
+    testExpected(group)
+  out.on "data", (data) ->
+    testExpected(data)
+  out.on "endgroup", (group) ->
+    testExpected(group)
+  out.on "disconnect", ->
+    test.done()
+
+  ins.connect()
+  ins.beginGroup("a")
+  ins.beginGroup("b")
+  ins.send(1)
+  ins.endGroup("b")
+  ins.beginGroup("c")
+  ins.send(2)
+  ins.endGroup("c")
+  ins.endGroup("a")
   ins.disconnect()

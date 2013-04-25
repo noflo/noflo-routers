@@ -68,39 +68,6 @@ exports["route incoming IPs based on group routes"] = (test) ->
   ins.endGroup("a")
   ins.disconnect()
 
-exports["route must be an array of segments"] = (test) ->
-  [c, [routesIns, ins], [error, out]] = setup("GroupRouter", ["routes", "in"], ["error", "out"])
-
-  errorCount = 0
-
-  error.on "data", (data) ->
-    switch errorCount++
-      when 0
-        test.equal(data.message, "Route must be array of segments")
-        test.equal(data.source, "a/b")
-      when 1
-        test.equal(data.message, "No 'missed' port attached but some data do not match any route")
-
-  out.on "data", (data) ->
-    test.ok(false, "should not be called")
-  error.on "disconnect", ->
-    test.done()
-
-  routesIns.connect()
-  routesIns.send("a/b")
-  routesIns.disconnect()
-
-  ins.connect()
-  ins.beginGroup("a")
-  ins.beginGroup("b")
-  ins.send("x")
-  ins.endGroup("b")
-  ins.endGroup("a")
-  ins.beginGroup("b")
-  ins.send("y")
-  ins.endGroup("b")
-  ins.disconnect()
-
 exports["matched groups are not removed by default"] = (test) ->
   [c, [routesIns, ins], [out, missedOut]] = setup("GroupRouter", ["routes", "in"], ["out", "missed"])
 
@@ -123,6 +90,28 @@ exports["matched groups are not removed by default"] = (test) ->
     test.ok(false, "Should not be called")
 
   out.on "disconnect", ->
+    test.done()
+
+  routesIns.connect()
+  routesIns.send(["a", "b"])
+  routesIns.disconnect()
+
+  ins.connect()
+  ins.beginGroup("a")
+  ins.beginGroup("b")
+  ins.beginGroup("c")
+  ins.send("x")
+  ins.endGroup("c")
+  ins.endGroup("b")
+  ins.endGroup("a")
+  ins.disconnect()
+
+exports["the matched path will also be output"] = (test) ->
+  [c, [routesIns, ins], [out, routesOut]] = setup("GroupRouter", ["routes", "in"], ["out", "routes"])
+
+  routesOut.on "data", (data) ->
+    test.deepEqual(data, [/a/, /b/])
+  routesOut.on "disconnect", ->
     test.done()
 
   routesIns.connect()
