@@ -8,6 +8,8 @@ class RegexpRouter extends noflo.Component
   position of the RegExp determines which port to forward to."
 
   constructor: ->
+    @routes = []
+
     @inPorts =
       routes: new noflo.Port
       in: new noflo.Port
@@ -59,17 +61,17 @@ class RegexpRouter extends noflo.Component
         @outPorts.missed.send(data)
 
     @inPorts.in.on "endgroup", (group) =>
-      if @matchedRouteIndex
-        @outPorts.out.endGroup(@matchedRouteIndex)
-      else if @outPorts.missed.isAttached()
-        @outPorts.missed.endGroup(group)
-
       # Go one level up
       @level--
 
       # Remove matching if we're at root and it's currently matching
       if @level is 0 and @matchedRouteIndex?
         @matchedRouteIndex = null
+
+      if @matchedRouteIndex?
+        @outPorts.out.endGroup(@matchedRouteIndex)
+      else if @outPorts.missed.isAttached()
+        @outPorts.missed.endGroup()
 
     @inPorts.in.on "disconnect", =>
       @outPorts.out.disconnect()
