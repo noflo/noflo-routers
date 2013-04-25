@@ -33,6 +33,7 @@
   { "components":
     { "PacketRouter": "./components/PacketRouter.coffee"
     , "GroupRouter": "./components/GroupRouter.coffee"
+    , "RegexpRouter": "./components/RegexpRouter.coffee"
     }
   }
 , "scripts":
