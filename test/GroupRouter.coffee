@@ -127,3 +127,33 @@ exports["the matched path will also be output"] = (test) ->
   ins.endGroup("b")
   ins.endGroup("a")
   ins.disconnect()
+
+exports["reset the routes"] = (test) ->
+  [c, [resetIns, routesIns, ins], [outA, outB, missedOut]] = setup("GroupRouter", ["reset", "routes", "in"], ["out", "out", "missed"])
+
+  outA.on "data", (data) ->
+    test.equal(data, "abc")
+  missedOut.on "disconnect", ->
+    test.done()
+
+  routesIns.connect()
+  routesIns.send(["a", "b"])
+  routesIns.disconnect()
+
+  resetIns.connect()
+  resetIns.disconnect()
+
+  routesIns.connect()
+  routesIns.send(["c"])
+  routesIns.disconnect()
+
+  ins.connect()
+  ins.beginGroup("a")
+  ins.beginGroup("b")
+  ins.send("missed")
+  ins.endGroup("b")
+  ins.endGroup("a")
+  ins.beginGroup("c")
+  ins.send("abc")
+  ins.endGroup("c")
+  ins.disconnect()

@@ -8,15 +8,18 @@ class GroupRouter extends noflo.Component
     routed but not removed when forwarding"
 
   constructor: ->
+    @routes = []
+
     @inPorts =
-      routes: new noflo.Port
       in: new noflo.Port
+      routes: new noflo.Port
+      reset: new noflo.Port
     @outPorts =
       out: new noflo.ArrayPort
       routes: new noflo.Port
       missed: new noflo.Port
 
-    @inPorts.routes.on "connect", (data) =>
+    @inPorts.reset.on "disconnect", =>
       @routes = []
 
     @inPorts.routes.on "data", (segments) =>

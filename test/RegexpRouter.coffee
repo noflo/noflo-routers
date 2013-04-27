@@ -49,3 +49,31 @@ exports["route incoming IPs based on RegExp (only the top-level)"] = (test) ->
   ins.send("xyz")
   ins.endGroup("xyz")
   ins.disconnect()
+
+exports["reset the routes"] = (test) ->
+  [c, [resetIns, routesIns, ins], [outA, outB, missedOut]] = setup("RegexpRouter", ["reset", "routes", "in"], ["out", "out", "missed"])
+
+  outA.on "data", (data) ->
+    test.equal(data, "abc")
+  missedOut.on "disconnect", ->
+    test.done()
+
+  routesIns.connect()
+  routesIns.send("cba")
+  routesIns.disconnect()
+
+  resetIns.connect()
+  resetIns.disconnect()
+
+  routesIns.connect()
+  routesIns.send("abc")
+  routesIns.disconnect()
+
+  ins.connect()
+  ins.beginGroup("abc")
+  ins.send("abc")
+  ins.endGroup("abc")
+  ins.beginGroup("cba")
+  ins.send("missed")
+  ins.endGroup("cba")
+  ins.disconnect()
