@@ -12,19 +12,21 @@ class GroupRouter extends noflo.Component
 
     @inPorts =
       in: new noflo.Port
-      routes: new noflo.Port
+      route: new noflo.ArrayPort
       reset: new noflo.Port
     @outPorts =
       out: new noflo.ArrayPort
-      routes: new noflo.Port
+      route: new noflo.Port
       missed: new noflo.Port
 
     @inPorts.reset.on "disconnect", =>
       @routes = []
 
-    @inPorts.routes.on "data", (segments) =>
+    @inPorts.route.on "data", (segments) =>
       if _.isArray(segments)
         @routes.push _.map segments, (segment) -> new RegExp(segment)
+      else if not _.isObject(segments)
+        @routes.push [new RegExp segments]
       else
         throw new Error
           message: "Route must be array of segments"
@@ -62,10 +64,10 @@ class GroupRouter extends noflo.Component
         @outPorts.missed.endGroup()
 
     @inPorts.in.on "disconnect", =>
-      if @outPorts.routes.isAttached()
+      if @outPorts.route.isAttached()
         for index in @matchedIndexes
-          @outPorts.routes.send(@routes[index])
-        @outPorts.routes.disconnect()
+          @outPorts.route.send(@routes[index])
+        @outPorts.route.disconnect()
 
       @outPorts.out.disconnect()
       @outPorts.missed.disconnect()

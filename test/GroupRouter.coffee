@@ -18,7 +18,7 @@ setup = (component, inNames=[], outNames=[], type = "component") ->
   [c, inPorts, outPorts]
 
 exports["route incoming IPs based on group routes"] = (test) ->
-  [c, [routesIns, ins], [outA, outB, outC, outD, missedOut]] = setup("GroupRouter", ["routes", "in"], ["out", "out", "out", "out", "missed"])
+  [c, [routesIns, ins], [outA, outB, outC, outD, missedOut]] = setup("GroupRouter", ["route", "in"], ["out", "out", "out", "out", "missed"])
 
   outA.on "data", (data) ->
     test.equal(data, "a/b")
@@ -39,7 +39,7 @@ exports["route incoming IPs based on group routes"] = (test) ->
   # in which routes were received.
   routesIns.connect()
   routesIns.send(["a", "b"])
-  routesIns.send(["d"])
+  routesIns.send("d")
   routesIns.send(["a", "e.+"])
   routesIns.send(["a", "g"])
   routesIns.disconnect()
@@ -69,7 +69,7 @@ exports["route incoming IPs based on group routes"] = (test) ->
   ins.disconnect()
 
 exports["matched groups are not removed by default"] = (test) ->
-  [c, [routesIns, ins], [out, missedOut]] = setup("GroupRouter", ["routes", "in"], ["out", "missed"])
+  [c, [routesIns, ins], [out, missedOut]] = setup("GroupRouter", ["route", "in"], ["out", "missed"])
 
   test.expect(7)
 
@@ -107,7 +107,7 @@ exports["matched groups are not removed by default"] = (test) ->
   ins.disconnect()
 
 exports["the matched path will also be output"] = (test) ->
-  [c, [routesIns, ins], [out, routesOut]] = setup("GroupRouter", ["routes", "in"], ["out", "routes"])
+  [c, [routesIns, ins], [out, routesOut]] = setup("GroupRouter", ["route", "in"], ["out", "route"])
 
   routesOut.on "data", (data) ->
     test.deepEqual(data, [/a/, /b/])
@@ -129,7 +129,7 @@ exports["the matched path will also be output"] = (test) ->
   ins.disconnect()
 
 exports["reset the routes"] = (test) ->
-  [c, [resetIns, routesIns, ins], [outA, outB, missedOut]] = setup("GroupRouter", ["reset", "routes", "in"], ["out", "out", "missed"])
+  [c, [resetIns, routesIns, ins], [outA, outB, missedOut]] = setup("GroupRouter", ["reset", "route", "in"], ["out", "out", "missed"])
 
   outA.on "data", (data) ->
     test.equal(data, "abc")

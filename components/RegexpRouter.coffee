@@ -12,7 +12,7 @@ class RegexpRouter extends noflo.Component
 
     @inPorts =
       in: new noflo.Port
-      routes: new noflo.Port
+      route: new noflo.ArrayPort
       reset: new noflo.Port
     @outPorts =
       out: new noflo.ArrayPort
@@ -22,7 +22,7 @@ class RegexpRouter extends noflo.Component
     @inPorts.reset.on "disconnect", =>
       @routes = []
 
-    @inPorts.routes.on "data", (regexp) =>
+    @inPorts.route.on "data", (regexp) =>
       if _.isString(regexp)
         @routes.push new RegExp regexp
       else

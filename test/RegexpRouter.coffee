@@ -18,7 +18,7 @@ setup = (component, inNames=[], outNames=[], type = "component") ->
   [c, inPorts, outPorts]
 
 exports["route incoming IPs based on RegExp (only the top-level)"] = (test) ->
-  [c, [routesIns, ins], [outA, outB, missedOut]] = setup("RegexpRouter", ["routes", "in"], ["out", "out", "missed"])
+  [c, [routesIns, ins], [outA, outB, missedOut]] = setup("RegexpRouter", ["route", "in"], ["out", "out", "missed"])
 
   outA.on "begingroup", (group) ->
     test.equal(group, "group")
@@ -51,7 +51,7 @@ exports["route incoming IPs based on RegExp (only the top-level)"] = (test) ->
   ins.disconnect()
 
 exports["reset the routes"] = (test) ->
-  [c, [resetIns, routesIns, ins], [outA, outB, missedOut]] = setup("RegexpRouter", ["reset", "routes", "in"], ["out", "out", "missed"])
+  [c, [resetIns, routesIns, ins], [outA, outB, missedOut]] = setup("RegexpRouter", ["reset", "route", "in"], ["out", "out", "missed"])
 
   outA.on "data", (data) ->
     test.equal(data, "abc")
