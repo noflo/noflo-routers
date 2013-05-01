@@ -70,7 +70,7 @@ class GroupRouter extends noflo.Component
         @outPorts.route.disconnect()
 
       @outPorts.out.disconnect()
-      @outPorts.missed.disconnect()
+      @outPorts.missed.disconnect() if @outPorts.missed.isAttached()
 
   # Re-evaluate whether there is a route match. Pass a boolean as the
   # second parameter to indicate whether it's beginning a new group.
