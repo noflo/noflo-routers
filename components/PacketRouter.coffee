@@ -45,6 +45,11 @@ class PacketRouter extends noflo.Component
         @count++
 
     @inPorts.in.on "disconnect", =>
+      # Simply connect unmatched ports without sending them anything
+      if @outPortCount > @count
+        for i in [@count...@outPortCount]
+          @outPorts.out.connect i
+
       @outPorts.out.disconnect()
       @outPorts.missed.disconnect() if @outPorts.missed.isAttached()
 
@@ -58,5 +63,5 @@ class PacketRouter extends noflo.Component
         port[operation](@count)
       else
         port[operation](data, @count)
- 
+
 exports.getComponent = -> new PacketRouter

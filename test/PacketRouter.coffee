@@ -75,3 +75,22 @@ exports["works with nested groups too"] = (test) ->
   ins.endGroup("c")
   ins.endGroup("a")
   ins.disconnect()
+
+exports["router still connects to unmatched ports"] = (test) ->
+  [c, [ins], [outA, outB, outC]] = setup("PacketRouter", ["in"], ["out", "out", "out"])
+
+  test.expect 3
+
+  outA.on "data", (data) ->
+    test.equal data, 1
+  outB.on "data", (data) ->
+    test.equal data, 2
+  outC.on "connect", ->
+    test.ok true
+  outC.on "disconnect", ->
+    test.done()
+
+  ins.connect()
+  ins.send(1)
+  ins.send(2)
+  ins.disconnect()
