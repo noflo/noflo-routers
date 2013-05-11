@@ -22,13 +22,9 @@ exports["routes incoming IPs based on IP stream position"] = (test) ->
 
   expectedMissed = ["c", "d"]
 
-  outA.on "begingroup", (group) ->
-    test.equal(group, "a")
   outA.on "data", (data) ->
     test.equal(data, "a")
 
-  outB.on "begingroup", (group) ->
-    test.ok(false, "there's no group for B")
   outB.on "data", (data) ->
     test.equal(data, "b")
 
@@ -38,42 +34,9 @@ exports["routes incoming IPs based on IP stream position"] = (test) ->
     test.done()
 
   ins.connect()
-  ins.beginGroup("a")
   ins.send("a")
-  ins.endGroup("a")
-  # Even without group it's routed
   ins.send("b")
-  ins.beginGroup("c")
   ins.send("c")
-  ins.endGroup("c")
-  ins.disconnect()
-
-exports["works with nested groups too"] = (test) ->
-  [c, [ins], [out]] = setup("PacketRouter", ["in"], ["out"])
-
-  expected = ["a", "b", 1, "b", "c", 2, "c", "a"]
-
-  testExpected = (item) ->
-    test.equal(item, expected.shift())
-
-  out.on "begingroup", (group) ->
-    testExpected(group)
-  out.on "data", (data) ->
-    testExpected(data)
-  out.on "endgroup", (group) ->
-    testExpected(group)
-  out.on "disconnect", ->
-    test.done()
-
-  ins.connect()
-  ins.beginGroup("a")
-  ins.beginGroup("b")
-  ins.send(1)
-  ins.endGroup("b")
-  ins.beginGroup("c")
-  ins.send(2)
-  ins.endGroup("c")
-  ins.endGroup("a")
   ins.disconnect()
 
 exports["router still connects to unmatched ports"] = (test) ->
@@ -85,8 +48,10 @@ exports["router still connects to unmatched ports"] = (test) ->
     test.equal data, 1
   outB.on "data", (data) ->
     test.equal data, 2
-  outC.on "connect", ->
-    test.ok true
+  outC.on "data", (data) ->
+    test.equal data, null
+  outA.on "disconnect", ->
+  outB.on "disconnect", ->
   outC.on "disconnect", ->
     test.done()
 
