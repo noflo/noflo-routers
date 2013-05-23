@@ -33,10 +33,12 @@ exports["route incoming IPs based on group routes"] = (test) ->
   outC.on "disconnect", ->
     test.done()
 
-  # Each route contains a linear hierarchy of groups separated by
-  # slashes.  `["a", "b"]` matches only if group `b` is enclosed within
-  # group `a`.  Matches are sent to the port corresponding to the order
-  # in which routes were received.
+  # Each route contains a linear hierarchy of groups separated by slashes.
+  # `["a", "b"]` matches only if group `b` is enclosed within group `a`.
+  # Matches are sent to the port corresponding to the order in which routes
+  # were received. So if a later-defined route is identical to an
+  # earlier-defined route, the earlier-defined route always receives the
+  # matches.
   routesIns.connect()
   routesIns.send(["a", "b"])
   routesIns.send("d")
@@ -46,6 +48,7 @@ exports["route incoming IPs based on group routes"] = (test) ->
 
   ins.connect()
   ins.beginGroup("a")
+  ins.send("missed")
   ins.beginGroup("b")
   ins.send("a/b")
   ins.endGroup("b")
@@ -53,7 +56,7 @@ exports["route incoming IPs based on group routes"] = (test) ->
   ins.send("missed")
   ins.endGroup("c")
   ins.endGroup("a")
-  # As long as 'd' is matched and there's no subsequent route segment, any
+  # As long as "d" is matched and there's no subsequent route segment, any
   # subsequent group doesn't count in determining whether this is a match or
   # not
   ins.beginGroup("d")
@@ -68,26 +71,22 @@ exports["route incoming IPs based on group routes"] = (test) ->
   ins.endGroup("a")
   ins.disconnect()
 
-exports["matched groups are not removed by default"] = (test) ->
+exports["matched groups are stripped"] = (test) ->
   [c, [routesIns, ins], [out, missedOut]] = setup("GroupRouter", ["route", "in"], ["out", "missed"])
 
-  test.expect(7)
-
-  expectedGroups = "abccba".split("")
+  test.expect 2
 
   out.on "begingroup", (group) ->
-    test.equal(group, expectedGroups.shift())
+    test.equal group, "c"
   out.on "data", (data) ->
-    test.equal(data, "x")
-  out.on "endgroup", (group) ->
-    test.equal(group, expectedGroups.shift())
+    test.equal data, "x"
 
   missedOut.on "begingroup", (group) ->
-    test.ok(false, "Should not be called")
+    test.ok(false, "should not be called")
   missedOut.on "data", (data) ->
-    test.ok(false, "Should not be called")
+    test.ok(false, "should not be called")
   missedOut.on "endgroup", (group) ->
-    test.ok(false, "Should not be called")
+    test.ok(false, "should not be called")
 
   out.on "disconnect", ->
     test.done()
@@ -157,3 +156,63 @@ exports["reset the routes"] = (test) ->
   ins.send("abc")
   ins.endGroup("c")
   ins.disconnect()
+
+
+## Test for compatbility with legacy GroupRouter. Do not use these as examples.
+
+exports["test routing error"] = (test) ->
+  test.expect 1
+  [c, [routes, src], [missed]] = setup("GroupRouter", ["routes", "in"], ["missed"])
+  routes.send "foo,bar"
+  missed.once "data", (data) ->
+    test.equal data, "hello"
+    test.done()
+  src.connect()
+  src.beginGroup "baz"
+  src.send "hello"
+  src.disconnect()
+
+exports["test routing success"] = (test) ->
+  test.expect 1
+  [c, [routes, src], [missed]] = setup("GroupRouter", ["routes", "in"], ["missed"])
+  routes.send "foo,bar"
+  dst1 = Socket.createSocket()
+  dst2 = Socket.createSocket()
+  c.outPorts.out.attach dst1
+  c.outPorts.out.attach dst2
+  dst2.once "data", (data) ->
+    test.equal data, "hello"
+    test.done()
+  src.connect()
+  src.beginGroup "bar"
+  src.send "hello"
+  src.disconnect()
+
+exports["test routing subgroup error"] = (test) ->
+  test.expect 1
+  [c, [routes, src], [missed]] = setup("GroupRouter", ["routes", "in"], ["missed"])
+  routes.send "foo:baz,bar:baz"
+  missed.once "data", (data) ->
+    test.equal data, "hello"
+    test.done()
+  src.connect()
+  src.beginGroup "bar"
+  src.send "hello"
+  src.disconnect()
+
+exports["test routing subgroup success"] = (test) ->
+  test.expect 1
+  [c, [routes, src], [missed]] = setup("GroupRouter", ["routes", "in"], ["missed"])
+  routes.send "foo:baz,bar:baz"
+  dst1 = Socket.createSocket()
+  dst2 = Socket.createSocket()
+  c.outPorts.out.attach dst1
+  c.outPorts.out.attach dst2
+  dst2.once "data", (data) ->
+    test.equal data, "hello"
+    test.done()
+  src.connect()
+  src.beginGroup "bar"
+  src.beginGroup "baz"
+  src.send "hello"
+  src.disconnect()

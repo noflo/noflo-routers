@@ -1,6 +1,6 @@
-noflo = require("noflo")
-_ = require("underscore")
-_s = require("underscore.string")
+noflo = require "noflo"
+_ = require "underscore"
+_s = require "underscore.string"
 
 class GroupRouter extends noflo.Component
 
@@ -12,8 +12,10 @@ class GroupRouter extends noflo.Component
 
     @inPorts =
       in: new noflo.Port
-      route: new noflo.ArrayPort
+      route: new noflo.Port
       reset: new noflo.Port
+      # Legacy-compatibility ports
+      routes: new noflo.Port
     @outPorts =
       out: new noflo.ArrayPort
       route: new noflo.Port
@@ -23,71 +25,74 @@ class GroupRouter extends noflo.Component
       @routes = []
 
     @inPorts.route.on "data", (segments) =>
-      if _.isArray(segments)
-        @routes.push _.map segments, (segment) -> new RegExp(segment)
-      else if not _.isObject(segments)
+      if _.isArray segments
+        @routes.push _.map segments, (segment) -> new RegExp segment
+      else if not _.isObject segments
         @routes.push [new RegExp segments]
       else
         throw new Error
           message: "Route must be array of segments"
           source: segments
 
+    # Legacy-compatibility ports
+    @inPorts.routes.on "data", (routes) =>
+      if typeof routes is "string"
+        @routes = _.map routes.split(","), (route) ->
+          _.map route.split(":"), (segment) ->
+            new RegExp segment
+
     @inPorts.in.on "connect", =>
       # Where we are in terms of groups and whether they match
       @breadcrumb = []
+      @matchedIndex = null
+      @matchedIndexes = []
 
     @inPorts.in.on "begingroup", (group) =>
-      @breadcrumb.push(group)
-      @matchRoute(group, true)
+      if @outPorts.out.isAttached @matchedIndex
+        @outPorts.out.beginGroup group, @matchedIndex
 
-      if @matchedIndexes.length > 0
-        for index in @matchedIndexes
-          @outPorts.out.beginGroup(group, index)
-      else if @outPorts.missed.isAttached()
-        @outPorts.missed.beginGroup(group)
+      @breadcrumb.push group
+      @matchRoute group, true
 
     @inPorts.in.on "data", (data) =>
-      if @matchedIndexes.length > 0
-        for index in @matchedIndexes
-          @outPorts.out.send(data, index)
+      if @outPorts.out.isAttached @matchedIndex
+        @outPorts.out.send data, @matchedIndex
       else if @outPorts.missed.isAttached()
-        @outPorts.missed.send(data)
+        @outPorts.missed.send data
 
     @inPorts.in.on "endgroup", (group) =>
       @breadcrumb.pop()
-      @matchRoute(group, false)
+      @matchRoute group
 
-      if @matchedIndexes.length > 0
-        for index in @matchedIndexes
-          @outPorts.out.endGroup(index)
-      else if @outPorts.missed.isAttached()
-        @outPorts.missed.endGroup()
+      if @outPorts.out.isAttached @matchedIndex
+        @outPorts.out.endGroup @matchedIndex
 
     @inPorts.in.on "disconnect", =>
       if @outPorts.route.isAttached()
         for index in @matchedIndexes
-          @outPorts.route.send(@routes[index])
+          @outPorts.route.send @routes[index]
         @outPorts.route.disconnect()
 
-      @outPorts.out.disconnect()
+      for index in [0...@outPorts.out.sockets.length]
+        if @outPorts.out.isAttached index
+          @outPorts.out.disconnect index
       @outPorts.missed.disconnect() if @outPorts.missed.isAttached()
 
-  # Re-evaluate whether there is a route match. Pass a boolean as the
-  # second parameter to indicate whether it's beginning a new group.
-  matchRoute: (group, toBegin) ->
-    # The routes that currently match. Start with all matching
-    @matchedIndexes = _.map @routes, (routes, index) -> index
+  # Re-evaluate whether there is a route match
+  matchRoute: (group) ->
+    indexes = _.map @routes, (route, index) =>
+      # Doesn't match if breadcrumb is shorter than route's requirement
+      return if route.length > @breadcrumb.length
 
-    for group, step in @breadcrumb
-      indexesToRemove = []
+      # Doesn't match if any of the breadcrumb doesn't match that of the route
+      for group, step in @breadcrumb
+        return unless group.match route[step]
 
-      for index in @matchedIndexes
-        route = @routes[index]
+      # Match otherwise
+      return index
 
-        if route[step]? and not group.match(route[step])?
-          indexesToRemove.push(index)
-
-      for index in indexesToRemove
-        @matchedIndexes.splice(@matchedIndexes.indexOf(index), 1)
+    indexes = _.without indexes, null, undefined
+    @matchedIndex = _.first indexes
+    @matchedIndexes.push @matchedIndex if @matchedIndex?
 
 exports.getComponent = -> new GroupRouter
