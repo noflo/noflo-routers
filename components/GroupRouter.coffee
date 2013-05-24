@@ -12,7 +12,7 @@ class GroupRouter extends noflo.Component
 
     @inPorts =
       in: new noflo.Port
-      route: new noflo.Port
+      route: new noflo.ArrayPort
       reset: new noflo.Port
       # Legacy-compatibility ports
       routes: new noflo.Port
