@@ -22,7 +22,6 @@
   { "noflo": "0.3.x"
   , "underscore": "1.4.x"
   , "underscore.string": "2.3.x"
-  , "multiple-inheritance": "0.1.x"
   }
 , "devDependencies":
   { "nodeunit": ">=0.6.0"
