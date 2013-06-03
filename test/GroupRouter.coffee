@@ -20,17 +20,28 @@ setup = (component, inNames=[], outNames=[], type = "component") ->
 exports["route incoming IPs based on group routes"] = (test) ->
   [c, [routesIns, ins], [outA, outB, outC, outD, missedOut]] = setup("GroupRouter", ["route", "in"], ["out", "out", "out", "out", "missed"])
 
+  count = 0
+
+  # Make sure connections are not nested
   outA.on "data", (data) ->
     test.equal(data, "a/b")
+    test.equal count++, 0
   outB.on "data", (data) ->
     test.equal(data, "d")
+    test.equal count++, 2
   outC.on "data", (data) ->
     test.equal(data, "e")
+    test.equal count++, 4
   outD.on "data", (data) ->
     test.ok(false, "should not be sent anything due to lack of qualified IPs")
   missedOut.on "data", (data) ->
     test.equal(data, "missed")
+  outA.on "disconnect", ->
+    test.equal count++, 1
+  outB.on "disconnect", ->
+    test.equal count++, 3
   outC.on "disconnect", ->
+    test.equal count++, 5
     test.done()
 
   # Each route contains a linear hierarchy of groups separated by slashes.
