@@ -47,7 +47,7 @@ class RegexpRouter extends noflo.Component
               @outPorts.route.disconnect()
             break
 
-      else if @matchedRouteIndex?
+      else if @matchedRouteIndex? and @outPorts.out.isAttached @matchedRouteIndex
         @outPorts.out.beginGroup(group, @matchedRouteIndex)
       else if @outPorts.missed.isAttached()
         @outPorts.missed.beginGroup(group)
@@ -56,7 +56,7 @@ class RegexpRouter extends noflo.Component
       @level++
 
     @inPorts.in.on "data", (data) =>
-      if @matchedRouteIndex?
+      if @matchedRouteIndex? and @outPorts.out.isAttached @matchedRouteIndex
         @outPorts.out.send(data, @matchedRouteIndex)
       else if @outPorts.missed.isAttached()
         @outPorts.missed.send(data)
@@ -69,7 +69,7 @@ class RegexpRouter extends noflo.Component
       if @level is 0 and @matchedRouteIndex?
         @matchedRouteIndex = null
 
-      if @matchedRouteIndex?
+      if @matchedRouteIndex? and @outPorts.out.isAttached @matchedRouteIndex
         @outPorts.out.endGroup(@matchedRouteIndex)
       else if @outPorts.missed.isAttached()
         @outPorts.missed.endGroup()
