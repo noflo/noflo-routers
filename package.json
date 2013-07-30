@@ -20,7 +20,8 @@
   "dependencies": {
     "noflo": "~0.3.3",
     "underscore": "1.4.x",
-    "underscore.string": "2.3.x"
+    "underscore.string": "2.3.x",
+    "noflo-flow": "~0.1.0"
   },
   "devDependencies": {
     "grunt-exec": "~0.4.2",

@@ -58,7 +58,7 @@ class RegexpRouter extends noflo.Component
       @level++
 
     @inPorts.in.on "data", (data) =>
-      if index? and @outPorts.out.isAttached @matchedRouteIndex
+      if @matchedRouteIndex? and @outPorts.out.isAttached @matchedRouteIndex
         @outPorts.out.send(data, @matchedRouteIndex)
       else if @outPorts.missed.isAttached()
         @outPorts.missed.send(data)
