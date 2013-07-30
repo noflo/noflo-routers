@@ -37,6 +37,8 @@ class RegexpRouter extends noflo.Component
       @level = 0
 
     @inPorts.in.on "begingroup", (group) =>
+      index = @matchedRouteIndex
+
       # Only at root level
       if @level is 0
         for route, i in @routes
@@ -47,8 +49,8 @@ class RegexpRouter extends noflo.Component
               @outPorts.route.disconnect()
             break
 
-      else if @matchedRouteIndex? and @outPorts.out.isAttached @matchedRouteIndex
-        @outPorts.out.beginGroup(group, @matchedRouteIndex)
+      else if index? and @outPorts.out.isAttached index
+        @outPorts.out.beginGroup(group, index)
       else if @outPorts.missed.isAttached()
         @outPorts.missed.beginGroup(group)
 
@@ -56,7 +58,7 @@ class RegexpRouter extends noflo.Component
       @level++
 
     @inPorts.in.on "data", (data) =>
-      if @matchedRouteIndex? and @outPorts.out.isAttached @matchedRouteIndex
+      if index? and @outPorts.out.isAttached @matchedRouteIndex
         @outPorts.out.send(data, @matchedRouteIndex)
       else if @outPorts.missed.isAttached()
         @outPorts.missed.send(data)
