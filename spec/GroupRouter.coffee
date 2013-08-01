@@ -207,19 +207,19 @@ describe 'GroupRouter component', ->
     ins.send "hello"
     ins.disconnect()
 
-  # it "test routing success", (done) ->
-  #   routesIns.send "foo,bar"
-  #   dst1 = noflo.internalSocket.createSocket()
-  #   dst2 = noflo.internalSocket.createSocket()
-  #   c.outPorts.out.attach dst1
-  #   c.outPorts.out.attach dst2
-  #   dst2.once "data", (data) ->
-  #     chai.expect(data).to.equal "hello"
-  #     done()
-  #   ins.connect()
-  #   ins.beginGroup "bar"
-  #   ins.send "hello"
-  #   ins.disconnect()
+  it "test routing success", (done) ->
+    routesIns.send "foo,bar"
+    dst1 = noflo.internalSocket.createSocket()
+    dst2 = noflo.internalSocket.createSocket()
+    c.outPorts.out.attach dst1
+    c.outPorts.out.attach dst2
+    dst2.once "data", (data) ->
+      chai.expect(data).to.equal "hello"
+      done()
+    ins.connect()
+    ins.beginGroup "bar"
+    ins.send "hello"
+    ins.disconnect()
 
   it "test routing subgroup error", (done) ->
     routesIns.send "foo:baz,bar:baz"
@@ -231,17 +231,17 @@ describe 'GroupRouter component', ->
     ins.send "hello"
     ins.disconnect()
 
-  # it "test routing subgroup success", (done) ->
-  #   routesIns.send "foo:baz,bar:baz"
-  #   dst1 = noflo.internalSocket.createSocket()
-  #   dst2 = noflo.internalSocket.createSocket()
-  #   c.outPorts.out.attach dst1
-  #   c.outPorts.out.attach dst2
-  #   dst2.once "data", (data) ->
-  #     chai.expect(data).to.equal "hello"
-  #     done()
-  #   ins.connect()
-  #   ins.beginGroup "bar"
-  #   ins.beginGroup "baz"
-  #   ins.send "hello"
-  #   ins.disconnect()
+  it "test routing subgroup success", (done) ->
+    routesIns.send "foo:baz,bar:baz"
+    dst1 = noflo.internalSocket.createSocket()
+    dst2 = noflo.internalSocket.createSocket()
+    c.outPorts.out.attach dst1
+    c.outPorts.out.attach dst2
+    dst2.once "data", (data) ->
+      chai.expect(data).to.equal "hello"
+      done()
+    ins.connect()
+    ins.beginGroup "bar"
+    ins.beginGroup "baz"
+    ins.send "hello"
+    ins.disconnect()
