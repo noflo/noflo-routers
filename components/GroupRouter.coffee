@@ -39,8 +39,8 @@ class GroupRouter extends noflo.Component
     # Legacy-compatibility ports
     @inPorts.routes.on "data", (routes) =>
       if typeof routes is "string"
-        @routes = _.map routes.split(","), (route) ->
-          _.map route.split(":"), (segment) ->
+        @routes = _.map routes.split(','), (route) ->
+          _.map route.split(':'), (segment) ->
             new RegExp segment
 
     @inPorts.in.on "connect", (port) =>
@@ -57,7 +57,7 @@ class GroupRouter extends noflo.Component
         @cache.beginGroup group, @matchedIndex
 
       @breadcrumb.push group
-      @matchRoute group, true
+      @matchRoute group
 
     @inPorts.in.on "data", (data) =>
       if @outPorts.out.isAttached @matchedIndex

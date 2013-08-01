@@ -35,10 +35,6 @@ describe 'GroupRouter component', ->
     c.inPorts.route.attach routeIns
     c.inPorts.routes.attach routesIns
     c.inPorts.reset.attach resetIns
-    c.outPorts.out.attach outA
-    c.outPorts.out.attach outB
-    c.outPorts.out.attach outC
-    c.outPorts.out.attach outD
     c.outPorts.route.attach routeOut
     c.outPorts.missed.attach missedOut
 
@@ -53,195 +49,208 @@ describe 'GroupRouter component', ->
       chai.expect(c.outPorts.missed).to.be.an 'object'
 
 
-  it "route incoming IPs based on group routes", (done) ->
-    count = 0
+  describe 'tests', ->
+    beforeEach ->
+      c.outPorts.out.attach outA
+      c.outPorts.out.attach outB
+      c.outPorts.out.attach outC
+      c.outPorts.out.attach outD
 
-    # Make sure connections are not nested
-    outA.on "data", (data) ->
-      chai.expect(data).to.equal "a/b"
-      chai.expect(count++).to.equal 0
-    outB.on "data", (data) ->
-      chai.expect(data).to.equal "d"
-      chai.expect(count++).to.equal 2
-    outC.on "data", (data) ->
-      chai.expect(data).to.equal "e"
-      chai.expect(count++).to.equal 4
-    outD.on "data", (data) ->
-      chai.expect(false).to.be.ok
-    missedOut.on "data", (data) ->
-      chai.expect(data).to.equal "missed"
-    outA.on "disconnect", ->
-      chai.expect(count++).to.equal 1
-    outB.on "disconnect", ->
-      chai.expect(count++).to.equal 3
-    outC.on "disconnect", ->
-      chai.expect(count++).to.equal 5
-      done()
+    it "route incoming IPs based on group routes", (done) ->
+      count = 0
 
-    # Each route contains a linear hierarchy of groups separated by slashes.
-    # `["a", "b"]` matches only if group `b` is enclosed within group `a`.
-    # Matches are sent to the port corresponding to the order in which routes
-    # were received. So if a later-defined route is identical to an
-    # earlier-defined route, the earlier-defined route always receives the
-    # matches.
-    routeIns.connect()
-    routeIns.send(["a", "b"])
-    routeIns.send("d")
-    routeIns.send(["a", "e.+"])
-    routeIns.send(["a", "g"])
-    routeIns.disconnect()
+      # Make sure connections are not nested
+      outA.on "data", (data) ->
+        chai.expect(data).to.equal "a/b"
+        chai.expect(count++).to.equal 0
+      outB.on "data", (data) ->
+        chai.expect(data).to.equal "d"
+        chai.expect(count++).to.equal 2
+      outC.on "data", (data) ->
+        chai.expect(data).to.equal "e"
+        chai.expect(count++).to.equal 4
+      outD.on "data", (data) ->
+        chai.expect(false).to.be.ok
+      missedOut.on "data", (data) ->
+        chai.expect(data).to.equal "missed"
+      outA.on "disconnect", ->
+        chai.expect(count++).to.equal 1
+      outB.on "disconnect", ->
+        chai.expect(count++).to.equal 3
+      outC.on "disconnect", ->
+        chai.expect(count++).to.equal 5
+        done()
 
-    ins.connect()
-    ins.beginGroup("a")
-    ins.send("missed")
-    ins.beginGroup("b")
-    ins.send("a/b")
-    ins.endGroup("b")
-    ins.beginGroup("c")
-    ins.send("missed")
-    ins.endGroup("c")
-    ins.endGroup("a")
-    # As long as "d" is matched and there's no subsequent route segment, any
-    # subsequent group doesn't count in determining whether this is a match or
-    # not
-    ins.beginGroup("d")
-    ins.beginGroup("e")
-    ins.send("d")
-    ins.endGroup("e")
-    ins.endGroup("d")
-    ins.beginGroup("a")
-    ins.beginGroup("ea")
-    ins.send("e")
-    ins.endGroup("ea")
-    ins.endGroup("a")
-    ins.disconnect()
+      # Each route contains a linear hierarchy of groups separated by slashes.
+      # `["a", "b"]` matches only if group `b` is enclosed within group `a`.
+      # Matches are sent to the port corresponding to the order in which routes
+      # were received. So if a later-defined route is identical to an
+      # earlier-defined route, the earlier-defined route always receives the
+      # matches.
+      routeIns.connect()
+      routeIns.send(["a", "b"])
+      routeIns.send("d")
+      routeIns.send(["a", "e.+"])
+      routeIns.send(["a", "g"])
+      routeIns.disconnect()
 
-  it "matched groups are stripped", (done) ->
-    outA.on "begingroup", (group) ->
-      chai.expect(group).to.equal "c"
-    outA.on "data", (data) ->
-      chai.expect(data).to.equal "x"
+      ins.connect()
+      ins.beginGroup("a")
+      ins.send("missed")
+      ins.beginGroup("b")
+      ins.send("a/b")
+      ins.endGroup("b")
+      ins.beginGroup("c")
+      ins.send("missed")
+      ins.endGroup("c")
+      ins.endGroup("a")
+      # As long as "d" is matched and there's no subsequent route segment, any
+      # subsequent group doesn't count in determining whether this is a match or
+      # not
+      ins.beginGroup("d")
+      ins.beginGroup("e")
+      ins.send("d")
+      ins.endGroup("e")
+      ins.endGroup("d")
+      ins.beginGroup("a")
+      ins.beginGroup("ea")
+      ins.send("e")
+      ins.endGroup("ea")
+      ins.endGroup("a")
+      ins.disconnect()
 
-    missedOut.on "begingroup", (group) ->
-      chai.expect(false).to.be.ok
-    missedOut.on "data", (data) ->
-      chai.expect(false).to.be.ok
-    missedOut.on "endgroup", (group) ->
-      chai.expect(false).to.be.ok
+    it "matched groups are stripped", (done) ->
+      outA.on "begingroup", (group) ->
+        chai.expect(group).to.equal "c"
+      outA.on "data", (data) ->
+        chai.expect(data).to.equal "x"
 
-    outA.on "disconnect", ->
-      done()
+      missedOut.on "begingroup", (group) ->
+        chai.expect(false).to.be.ok
+      missedOut.on "data", (data) ->
+        chai.expect(false).to.be.ok
+      missedOut.on "endgroup", (group) ->
+        chai.expect(false).to.be.ok
 
-    routeIns.connect()
-    routeIns.send(["a", "b"])
-    routeIns.disconnect()
+      outA.on "disconnect", ->
+        done()
 
-    ins.connect()
-    ins.beginGroup("a")
-    ins.beginGroup("b")
-    ins.beginGroup("c")
-    ins.send("x")
-    ins.endGroup("c")
-    ins.endGroup("b")
-    ins.endGroup("a")
-    ins.disconnect()
+      routeIns.connect()
+      routeIns.send(["a", "b"])
+      routeIns.disconnect()
 
-  it "the matched path will also be output", (done) ->
-    routeOut.on "data", (data) ->
-      chai.expect(data).to.deep.equal [/a/, /b/]
-    routeOut.on "disconnect", ->
-      done()
+      ins.connect()
+      ins.beginGroup("a")
+      ins.beginGroup("b")
+      ins.beginGroup("c")
+      ins.send("x")
+      ins.endGroup("c")
+      ins.endGroup("b")
+      ins.endGroup("a")
+      ins.disconnect()
 
-    routeIns.connect()
-    routeIns.send(["a", "b"])
-    routeIns.disconnect()
+    it "the matched path will also be output", (done) ->
+      routeOut.on "data", (data) ->
+        chai.expect(data).to.deep.equal [/a/, /b/]
+      routeOut.on "disconnect", ->
+        done()
 
-    ins.connect()
-    ins.beginGroup("a")
-    ins.beginGroup("b")
-    ins.beginGroup("c")
-    ins.send("x")
-    ins.endGroup("c")
-    ins.endGroup("b")
-    ins.endGroup("a")
-    ins.disconnect()
+      routeIns.connect()
+      routeIns.send(["a", "b"])
+      routeIns.disconnect()
 
-  it "reset the routes", (done) ->
-    outA.on "data", (data) ->
-      chai.expect(data).to.equal "abc"
-    missedOut.on "disconnect", ->
-      done()
+      ins.connect()
+      ins.beginGroup("a")
+      ins.beginGroup("b")
+      ins.beginGroup("c")
+      ins.send("x")
+      ins.endGroup("c")
+      ins.endGroup("b")
+      ins.endGroup("a")
+      ins.disconnect()
 
-    routeIns.connect()
-    routeIns.send(["a", "b"])
-    routeIns.disconnect()
+    it "reset the routes", (done) ->
+      outA.on "data", (data) ->
+        chai.expect(data).to.equal "abc"
+      missedOut.on "disconnect", ->
+        done()
 
-    resetIns.connect()
-    resetIns.disconnect()
+      routeIns.connect()
+      routeIns.send(["a", "b"])
+      routeIns.disconnect()
 
-    routeIns.connect()
-    routeIns.send(["c"])
-    routeIns.disconnect()
+      resetIns.connect()
+      resetIns.disconnect()
 
-    ins.connect()
-    ins.beginGroup("a")
-    ins.beginGroup("b")
-    ins.send("missed")
-    ins.endGroup("b")
-    ins.endGroup("a")
-    ins.beginGroup("c")
-    ins.send("abc")
-    ins.endGroup("c")
-    ins.disconnect()
+      routeIns.connect()
+      routeIns.send(["c"])
+      routeIns.disconnect()
+
+      ins.connect()
+      ins.beginGroup("a")
+      ins.beginGroup("b")
+      ins.send("missed")
+      ins.endGroup("b")
+      ins.endGroup("a")
+      ins.beginGroup("c")
+      ins.send("abc")
+      ins.endGroup("c")
+      ins.disconnect()
 
 
   ## Test for compatbility with legacy GroupRouter. Do not use these as examples.
 
-  it "test routing error", (done) ->
-    routesIns.send "foo,bar"
-    missedOut.once "data", (data) ->
-      chai.expect(data).to.equal "hello"
-      done()
-    ins.connect()
-    ins.beginGroup "baz"
-    ins.send "hello"
-    ins.disconnect()
+  describe 'legacy test', ->
+    it "test routing error", (done) ->
+      routesIns.send "foo,bar"
+      missedOut.once "data", (data) ->
+        chai.expect(data).to.equal "hello"
+        done()
+      ins.connect()
+      ins.beginGroup "baz"
+      ins.send "hello"
+      ins.endGroup()
+      ins.disconnect()
 
-  it "test routing success", (done) ->
-    routesIns.send "foo,bar"
-    dst1 = noflo.internalSocket.createSocket()
-    dst2 = noflo.internalSocket.createSocket()
-    c.outPorts.out.attach dst1
-    c.outPorts.out.attach dst2
-    dst2.once "data", (data) ->
-      chai.expect(data).to.equal "hello"
-      done()
-    ins.connect()
-    ins.beginGroup "bar"
-    ins.send "hello"
-    ins.disconnect()
+    it "test routing success", (done) ->
+      routesIns.send "foo,bar"
+      dst1 = noflo.internalSocket.createSocket()
+      dst2 = noflo.internalSocket.createSocket()
+      c.outPorts.out.attach dst1
+      c.outPorts.out.attach dst2
+      dst2.once "data", (data) ->
+        chai.expect(data).to.equal "hello"
+        done()
+      ins.connect()
+      ins.beginGroup "bar"
+      ins.send "hello"
+      ins.endGroup()
+      ins.disconnect()
 
-  it "test routing subgroup error", (done) ->
-    routesIns.send "foo:baz,bar:baz"
-    missedOut.once "data", (data) ->
-      chai.expect(data).to.equal "hello"
-      done()
-    ins.connect()
-    ins.beginGroup "bar"
-    ins.send "hello"
-    ins.disconnect()
+    it "test routing subgroup error", (done) ->
+      routesIns.send "foo:baz,bar:baz"
+      missedOut.once "data", (data) ->
+        chai.expect(data).to.equal "hello"
+        done()
+      ins.connect()
+      ins.beginGroup "bar"
+      ins.send "hello"
+      ins.endGroup()
+      ins.disconnect()
 
-  it "test routing subgroup success", (done) ->
-    routesIns.send "foo:baz,bar:baz"
-    dst1 = noflo.internalSocket.createSocket()
-    dst2 = noflo.internalSocket.createSocket()
-    c.outPorts.out.attach dst1
-    c.outPorts.out.attach dst2
-    dst2.once "data", (data) ->
-      chai.expect(data).to.equal "hello"
-      done()
-    ins.connect()
-    ins.beginGroup "bar"
-    ins.beginGroup "baz"
-    ins.send "hello"
-    ins.disconnect()
+    it "test routing subgroup success", (done) ->
+      routesIns.send "foo:baz,bar:baz"
+      dst1 = noflo.internalSocket.createSocket()
+      dst2 = noflo.internalSocket.createSocket()
+      c.outPorts.out.attach dst1
+      c.outPorts.out.attach dst2
+      dst2.once "data", (data) ->
+        chai.expect(data).to.equal "hello"
+        done()
+      ins.connect()
+      ins.beginGroup "bar"
+      ins.beginGroup "baz"
+      ins.send "hello"
+      ins.endGroup()
+      ins.endGroup()
+      ins.disconnect()

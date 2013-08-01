@@ -12,9 +12,7 @@ describe 'SplitInSequence component', ->
   beforeEach ->
     c = SplitInSequence.getComponent()
     ins = noflo.internalSocket.createSocket()
-    out = noflo.internalSocket.createSocket()
     c.inPorts.in.attach ins
-    c.outPorts.out.attach out
 
   describe 'when instantiated', ->
     it 'should have an input port', ->
@@ -23,6 +21,8 @@ describe 'SplitInSequence component', ->
       chai.expect(c.outPorts.out).to.be.an 'object'
 
   it 'test sending to single outport', (done) ->
+    out = noflo.internalSocket.createSocket()
+    c.outPorts.out.attach out
     expects = [5, 1]
     sends = [5, 1]
 
