@@ -9,7 +9,7 @@
   "version": "0.1.0",
   "dependencies": {
     "noflo/noflo": "*",
-    "component/underscore": "*",
+    "component/underscore": "*"
   },
   "scripts": [
     "components/PacketRouter.coffee",
