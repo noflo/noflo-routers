@@ -13,7 +13,6 @@
   },
   "scripts": [
     "components/PacketRouter.coffee",
-    "components/GroupRouter.coffee",
     "components/RegexpRouter.coffee",
     "components/SplitInSequence.coffee",
     "index.js"
@@ -24,7 +23,6 @@
   "noflo": {
     "components": {
       "PacketRouter": "components/PacketRouter.coffee",
-      "GroupRouter": "components/GroupRouter.coffee",
       "RegexpRouter": "components/RegexpRouter.coffee",
       "SplitInSequence": "components/SplitInSequence.coffee"
     }
