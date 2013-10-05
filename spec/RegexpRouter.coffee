@@ -3,7 +3,7 @@ unless noflo.isBrowser()
   chai = require 'chai' unless chai
   RegexpRouter = require '../components/RegexpRouter.coffee'
 else
-  RegexpRouter = require 'routers/components/RegexpRouter.js'
+  RegexpRouter = require 'noflo-routers/components/RegexpRouter.js'
 
 describe 'RegexpRouter component', ->
   c = null

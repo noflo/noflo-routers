@@ -3,7 +3,7 @@ unless noflo.isBrowser()
   chai = require 'chai' unless chai
   GroupRouter = require '../components/GroupRouter.coffee'
 else
-  GroupRouter = require 'routers/components/GroupRouter.js'
+  GroupRouter = require 'noflo-routers/components/GroupRouter.js'
 
 describe 'GroupRouter component', ->
   c = null

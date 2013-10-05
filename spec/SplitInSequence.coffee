@@ -3,7 +3,7 @@ unless noflo.isBrowser()
   chai = require 'chai' unless chai
   SplitInSequence = require '../components/SplitInSequence.coffee'
 else
-  SplitInSequence = require 'routers/components/SplitInSequence.js'
+  SplitInSequence = require 'noflo-routers/components/SplitInSequence.js'
 
 describe 'SplitInSequence component', ->
   c = null

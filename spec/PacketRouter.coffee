@@ -3,7 +3,7 @@ unless noflo.isBrowser()
   chai = require 'chai' unless chai
   PacketRouter = require '../components/PacketRouter.coffee'
 else
-  PacketRouter = require 'routers/components/PacketRouter.js'
+  PacketRouter = require 'noflo-routers/components/PacketRouter.js'
 
 describe 'PacketRouter component', ->
   c = null
