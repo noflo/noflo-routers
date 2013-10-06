@@ -21,6 +21,7 @@
     "component.json"
   ],
   "noflo": {
+    "icon": "code-fork",
     "components": {
       "PacketRouter": "components/PacketRouter.coffee",
       "RegexpRouter": "components/RegexpRouter.coffee",

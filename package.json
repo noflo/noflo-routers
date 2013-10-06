@@ -40,6 +40,7 @@
     "grunt-component": "~0.1.2"
   },
   "noflo": {
+    "icon": "code-fork",
     "components": {
       "PacketRouter": "./components/PacketRouter.coffee",
       "GroupRouter": "./components/GroupRouter.coffee",
