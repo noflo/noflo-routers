@@ -12,6 +12,7 @@
     "component/underscore": "*"
   },
   "scripts": [
+    "components/ControlledSequence.coffee",
     "components/PacketRouter.coffee",
     "components/RegexpRouter.coffee",
     "components/SplitInSequence.coffee",
@@ -23,6 +24,7 @@
   "noflo": {
     "icon": "code-fork",
     "components": {
+      "ControlledSequence": "components/ControlledSequence.coffee",
       "PacketRouter": "components/PacketRouter.coffee",
       "RegexpRouter": "components/RegexpRouter.coffee",
       "SplitInSequence": "components/SplitInSequence.coffee"
