@@ -13,6 +13,7 @@
   },
   "scripts": [
     "components/ControlledSequence.coffee",
+    "components/KickRouter.coffee",
     "components/PacketRouter.coffee",
     "components/RegexpRouter.coffee",
     "components/SplitInSequence.coffee",
@@ -25,9 +26,11 @@
     "icon": "code-fork",
     "components": {
       "ControlledSequence": "components/ControlledSequence.coffee",
+      "KickRouter": "components/KickRouter.coffee",
       "PacketRouter": "components/PacketRouter.coffee",
       "RegexpRouter": "components/RegexpRouter.coffee",
       "SplitInSequence": "components/SplitInSequence.coffee"
     }
-  }
+  },
+  "repo": "https://raw.github.com/noflo/noflo-routers"
 }
