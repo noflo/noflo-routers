@@ -2,7 +2,7 @@ noflo = require 'noflo'
 
 class KickRouter extends noflo.Component
 
-  description: "Holds an IP and send it to a specified ArrayPort or previous/next"
+  description: "Holds an IP and send it to a specified port or previous/next"
 
   constructor: ->
     @data = null
