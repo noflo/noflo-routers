@@ -7,7 +7,7 @@ class ControlledSequence extends noflo.Component
       in: new noflo.Port 'all'
       next: new noflo.Port 'bang'
     @outPorts =
-      out: new noflo.Port 'all'
+      out: new noflo.ArrayPort 'all'
 
     @inPorts.in.on 'begingroup', (group) =>
       @outPorts.out.beginGroup group, @current
