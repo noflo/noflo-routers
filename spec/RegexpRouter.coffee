@@ -10,6 +10,7 @@ describe 'RegexpRouter component', ->
   ins = null
   routesIns = null
   resetIns = null
+  sendTopLevel = null
   outA = null
   outB = null
   missedOut = null
@@ -20,6 +21,7 @@ describe 'RegexpRouter component', ->
     ins = noflo.internalSocket.createSocket()
     routesIns = noflo.internalSocket.createSocket()
     resetIns = noflo.internalSocket.createSocket()
+    sendTopLevel = noflo.internalSocket.createSocket()
     outA = noflo.internalSocket.createSocket()
     outB = noflo.internalSocket.createSocket()
     missedOut = noflo.internalSocket.createSocket()
@@ -27,6 +29,7 @@ describe 'RegexpRouter component', ->
     c.inPorts.in.attach ins
     c.inPorts.route.attach routesIns
     c.inPorts.reset.attach resetIns
+    c.inPorts.sendtoplevel.attach sendTopLevel
     c.outPorts.missed.attach missedOut
     c.outPorts.route.attach routesOut
 
@@ -74,6 +77,55 @@ describe 'RegexpRouter component', ->
     ins.endGroup("xyz")
     ins.disconnect()
 
+  it "route incoming IPs based on RegExp (only the top-level), sending all groups", (done) ->
+    c.outPorts.out.attach outA
+    c.outPorts.out.attach outB
+
+    expA = ['abc', 'group']
+    toEndA = expA.length
+    expMissed = ['cba']
+    toEndMissed = expMissed.length
+
+    outA.on "begingroup", (group) ->
+      chai.expect(group).to.equal expA.shift()
+    outA.on "data", (data) ->
+      chai.expect(data).to.equal "abc"
+    outA.on "endgroup", ->
+      toEndA--
+    outB.on "data", (data) ->
+      chai.expect(data).to.equal "xyz"
+    missedOut.on "begingroup", (group) ->
+      chai.expect(group).to.equal expMissed.shift()
+    missedOut.on "data", (data) ->
+      chai.expect(data).to.equal "missed"
+    missedOut.on "endgroup", ->
+      toEndMissed--
+    missedOut.on "disconnect", ->
+      chai.expect(expA.length).to.equal 0
+      chai.expect(toEndA).to.equal 0
+      chai.expect(expMissed.length).to.equal 0
+      chai.expect(toEndMissed).to.equal 0
+      done()
+
+    sendTopLevel.send true
+    routesIns.connect()
+    routesIns.send("c$")
+    routesIns.send("^x")
+    routesIns.disconnect()
+
+    ins.connect()
+    ins.beginGroup("abc")
+    ins.beginGroup("group")
+    ins.send("abc")
+    ins.endGroup("group")
+    ins.endGroup("abc")
+    ins.beginGroup("cba")
+    ins.send("missed")
+    ins.endGroup("cba")
+    ins.beginGroup("xyz")
+    ins.send("xyz")
+    ins.endGroup("xyz")
+    ins.disconnect()
   it "reset the routes", (done) ->
     c.outPorts.out.attach outA
     c.outPorts.out.attach outB

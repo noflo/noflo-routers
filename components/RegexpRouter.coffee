@@ -8,18 +8,23 @@ class RegexpRouter extends noflo.Component
 
   constructor: ->
     @routes = []
+    @sendToplevel = false
 
     @inPorts =
-      in: new noflo.Port
-      route: new noflo.ArrayPort
-      reset: new noflo.Port
+      in: new noflo.Port 'all'
+      route: new noflo.ArrayPort 'string'
+      reset: new noflo.Port 'bang'
+      sendtoplevel: new noflo.Port 'boolean'
     @outPorts =
-      out: new noflo.ArrayPort
-      missed: new noflo.Port
-      route: new noflo.Port
+      out: new noflo.ArrayPort 'all'
+      missed: new noflo.Port 'all'
+      route: new noflo.Port 'string'
 
     @inPorts.reset.on "disconnect", =>
       @routes = []
+
+    @inPorts.sendtoplevel.on 'data', (data) =>
+      @sendTopLevel = String(data) is 'true'
 
     @inPorts.route.on "data", (regexp) =>
       if _.isString(regexp)
@@ -53,6 +58,13 @@ class RegexpRouter extends noflo.Component
       else if @outPorts.missed.isAttached()
         @outPorts.missed.beginGroup(group)
 
+      if @sendTopLevel and @level is 0
+        if @matchedRouteIndex? and @outPorts.out.isAttached @matchedRouteIndex
+          @outPorts.out.beginGroup(group, @matchedRouteIndex)
+        else
+          @outPorts.missed.beginGroup(group)
+
+
       # Go one level deeper
       @level++
 
@@ -68,7 +80,13 @@ class RegexpRouter extends noflo.Component
 
       # Remove matching if we're at root and it's currently matching
       if @level is 0 and @matchedRouteIndex?
+        if @sendTopLevel
+          if @matchedRouteIndex? and @outPorts.out.isAttached @matchedRouteIndex
+            @outPorts.out.endGroup(@matchedRouteIndex)
+          else if @outPorts.missed.isAttached()
+            @outPorts.missed.endGroup()
         @matchedRouteIndex = null
+        return
 
       if @matchedRouteIndex? and @outPorts.out.isAttached @matchedRouteIndex
         @outPorts.out.endGroup(@matchedRouteIndex)
