@@ -126,11 +126,11 @@ describe 'GroupRouter component', ->
         chai.expect(data).to.equal "x"
 
       missedOut.on "begingroup", (group) ->
-        chai.expect(false).to.be.ok
+        chai.expect(group).to.equal 'a'
       missedOut.on "data", (data) ->
         chai.expect(false).to.be.ok
       missedOut.on "endgroup", (group) ->
-        chai.expect(false).to.be.ok
+        chai.expect(group).to.equal 'a'
 
       outA.on "disconnect", ->
         done()
