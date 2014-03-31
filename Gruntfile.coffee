@@ -38,8 +38,11 @@ module.exports = ->
         input: 'browser/routers.js'
         output: 'browser/routers.js'
         tokens: [
-          token: '.coffee'
-          string: '.js'
+          token: '.coffee"'
+          string: '.js"'
+        ,
+          token: ".coffee'"
+          string: ".js'"
         ]
 
     # JavaScript minification for the browser
