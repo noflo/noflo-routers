@@ -36,15 +36,18 @@
     "grunt-contrib-watch": "~0.3.1",
     "component-json": "~0.1.4",
     "grunt-combine": "~0.8.3",
-    "grunt-component": "~0.1.2"
+    "grunt-component": "~0.1.2",
+    "grunt-noflo-manifest": "^0.1.2"
   },
   "noflo": {
     "icon": "code-fork",
     "components": {
-      "PacketRouter": "./components/PacketRouter.coffee",
-      "GroupRouter": "./components/GroupRouter.coffee",
-      "RegexpRouter": "./components/RegexpRouter.coffee",
-      "SplitInSequence": "./components/SplitInSequence.coffee"
+      "ControlledSequence": "components/ControlledSequence.coffee",
+      "GroupRouter": "components/GroupRouter.coffee",
+      "KickRouter": "components/KickRouter.coffee",
+      "PacketRouter": "components/PacketRouter.coffee",
+      "RegexpRouter": "components/RegexpRouter.coffee",
+      "SplitInSequence": "components/SplitInSequence.coffee"
     }
   },
   "scripts": {

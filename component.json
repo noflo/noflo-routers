@@ -27,8 +27,8 @@
     "icon": "code-fork",
     "components": {
       "ControlledSequence": "components/ControlledSequence.coffee",
-      "KickRouter": "components/KickRouter.coffee",
       "GroupRouter": "components/GroupRouter.coffee",
+      "KickRouter": "components/KickRouter.coffee",
       "PacketRouter": "components/PacketRouter.coffee",
       "RegexpRouter": "components/RegexpRouter.coffee",
       "SplitInSequence": "components/SplitInSequence.coffee"
