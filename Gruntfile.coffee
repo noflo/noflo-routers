@@ -21,37 +21,12 @@ module.exports = ->
         dest: 'spec'
         ext: '.js'
 
-    # Browser version building
-    component:
-      install:
-        options:
-          action: 'install'
-    component_build:
-      'routers':
-        output: './browser/'
-        config: './component.json'
-        scripts: true
-        styles: false
-        plugins: ['coffee']
-        configure: (builder) ->
-          # Enable Component plugins
-          json = require 'component-json'
-          builder.use json()
-
-    # Fix broken Component aliases, as mentioned in
-    # https://github.com/anthonyshort/component-coffee/issues/3
-    combine:
-      browser:
-        input: 'browser/routers.js'
-        output: 'browser/routers.js'
-        tokens: [
-          token: '.coffee"'
-          string: '.js"'
-        ,
-          token: ".coffee'"
-          string: ".js'"
-        ]
-
+    # Browser build of NoFlo
+    noflo_browser:
+      build:
+        files:
+          'browser/routers.js': ['component.json']
+    
     # JavaScript minification for the browser
     uglify:
       options:
@@ -83,17 +58,10 @@ module.exports = ->
     coffeelint:
       components: ['components/*.coffee']
 
-    # noflo-test
-    exec:
-      test:
-        command: './node_modules/.bin/noflo-test --spec test/*.coffee'
-
   # Grunt plugins used for building
   @loadNpmTasks 'grunt-noflo-manifest'
+  @loadNpmTasks 'grunt-noflo-browser'
   @loadNpmTasks 'grunt-contrib-coffee'
-  @loadNpmTasks 'grunt-component'
-  @loadNpmTasks 'grunt-component-build'
-  @loadNpmTasks 'grunt-combine'
   @loadNpmTasks 'grunt-contrib-uglify'
 
   # Grunt plugins used for testing
@@ -101,29 +69,23 @@ module.exports = ->
   @loadNpmTasks 'grunt-cafe-mocha'
   @loadNpmTasks 'grunt-mocha-phantomjs'
   @loadNpmTasks 'grunt-coffeelint'
-  @loadNpmTasks 'grunt-exec'
 
   # Our local tasks
   @registerTask 'build', 'Build NoFlo for the chosen target platform', (target = 'all') =>
     @task.run 'coffee'
     @task.run 'noflo_manifest'
     if target is 'all' or target is 'browser'
-      @task.run 'component'
-      @task.run 'component_build'
-      @task.run 'combine'
+      @task.run 'noflo_browser'
       @task.run 'uglify'
 
   @registerTask 'test', 'Build NoFlo and run automated tests', (target = 'all') =>
     @task.run 'coffeelint'
     @task.run 'noflo_manifest'
-    # @task.run 'exec:test'
-    @task.run 'coffee'
     if target is 'all' or target is 'nodejs'
       @task.run 'cafemocha'
     if target is 'all' or target is 'browser'
-      @task.run 'component'
-      @task.run 'component_build'
-      @task.run 'combine'
+      @task.run 'noflo_browser'
+      @task.run 'coffee'
       @task.run 'mocha_phantomjs'
 
   @registerTask 'default', ['test']
