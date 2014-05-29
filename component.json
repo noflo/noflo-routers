@@ -9,7 +9,7 @@
   "version": "0.2.0",
   "dependencies": {
     "noflo/noflo": "*",
-    "component/underscore": "*"
+    "jashkenas/underscore": "*"
   },
   "scripts": [
     "components/ControlledSequence.coffee",
