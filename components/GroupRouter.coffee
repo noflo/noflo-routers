@@ -17,17 +17,25 @@ exports.getComponent = ->
 
   component = new noflo.Component
     outPorts:
-      out: new noflo.OutPort
+      out:
+        datatype: 'all'
         addressable: true
-      route: new noflo.OutPort
-      missed: new noflo.OutPort
+      route:
+        datatype: 'string'
+        required: false
+      missed:
+        datatype: 'all'
+        required: false
     inPorts: new noflo.InPorts
 
   component.description = "routes IPs based on groups, which are matched and
   routed but not removed when forwarding"
 
 
-  component.inPorts.add 'route', (event, payload) ->
+  component.inPorts.add 'route',
+    datatype: 'array'
+    description: 'Array of route segments'
+  , (event, payload) ->
     switch event
       when 'data'
         if _.isArray payload
@@ -39,12 +47,18 @@ exports.getComponent = ->
             message: "Route must be array of segments"
             source: segments
 
-  component.inPorts.add 'reset', (event, payload) ->
+  component.inPorts.add 'reset',
+    datatype: 'bang'
+    description: 'Remove configured routes'
+  , (event, payload) ->
     switch event
       when 'disconnect'
         routes = []
 
-  component.inPorts.add 'in', (event, payload) ->
+  component.inPorts.add 'in',
+    datatype: 'all'
+    description: 'Data to be routed by its groups'
+  , (event, payload) ->
     switch event
       when 'begingroup'
         # Update where we are
@@ -96,7 +110,10 @@ exports.getComponent = ->
 
   # Backward compatibility
   # TODO: should be removed in future releases of noflo
-  component.inPorts.add 'routes', (event, payload) ->
+  component.inPorts.add 'routes',
+    datatype: 'string'
+    description: 'Comma-separated list of routes. Deprecated'
+  , (event, payload) ->
     switch event
       when 'data'
         if typeof payload is "string"
