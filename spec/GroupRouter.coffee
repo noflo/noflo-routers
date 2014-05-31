@@ -255,8 +255,40 @@ describe 'GroupRouter component', ->
       ins.endGroup()
       ins.disconnect()
 
+    it "test routing group wildcards", (done) ->
+      routesIns.send "bar,.*"
+      dst1 = noflo.internalSocket.createSocket()
+      dst2 = noflo.internalSocket.createSocket()
+      c.outPorts.out.attach dst1
+      c.outPorts.out.attach dst2
+      dst2.once "data", (data) ->
+        chai.expect(data).to.equal "hello"
+        done()
+      ins.connect()
+      ins.beginGroup "baz"
+      ins.send "hello"
+      ins.endGroup()
+      ins.disconnect()
+
     it "test routing subgroup wildcards", (done) ->
       routesIns.send "foo:baz,bar:.*"
+      dst1 = noflo.internalSocket.createSocket()
+      dst2 = noflo.internalSocket.createSocket()
+      c.outPorts.out.attach dst1
+      c.outPorts.out.attach dst2
+      dst2.once "data", (data) ->
+        chai.expect(data).to.equal "hello"
+        done()
+      ins.connect()
+      ins.beginGroup "bar"
+      ins.beginGroup "baz"
+      ins.send "hello"
+      ins.endGroup()
+      ins.endGroup()
+      ins.disconnect()
+
+    it "test routing primary group wildcards", (done) ->
+      routesIns.send "foo:baz,.*:baz"
       dst1 = noflo.internalSocket.createSocket()
       dst2 = noflo.internalSocket.createSocket()
       c.outPorts.out.attach dst1
