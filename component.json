@@ -18,7 +18,8 @@
     "components/PacketRouter.coffee",
     "components/RegexpRouter.coffee",
     "components/SplitInSequence.coffee",
-    "index.js"
+    "index.js",
+    "components/PacketRegexpRouter.coffee"
   ],
   "json": [
     "component.json"
@@ -29,6 +30,7 @@
       "ControlledSequence": "components/ControlledSequence.coffee",
       "GroupRouter": "components/GroupRouter.coffee",
       "KickRouter": "components/KickRouter.coffee",
+      "PacketRegexpRouter": "components/PacketRegexpRouter.coffee",
       "PacketRouter": "components/PacketRouter.coffee",
       "RegexpRouter": "components/RegexpRouter.coffee",
       "SplitInSequence": "components/SplitInSequence.coffee"
