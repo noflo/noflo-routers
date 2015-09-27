@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "noflo": "0.5.13",
-    "underscore": "1.7.0"
+    "underscore": "1.8.3"
   },
   "devDependencies": {
     "grunt": "0.4.5",
