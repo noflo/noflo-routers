@@ -1,5 +1,13 @@
 language: node_js
 node_js:
-  - "4.2"
+- '4.2'
 before_script:
-  - npm install -g grunt-cli
+- npm install -g grunt-cli
+deploy:
+  provider: npm
+  email: henri.bergius@iki.fi
+  api_key:
+    secure: af6bOAQc8rLGaA3f+Z0N65xtXf4ivIAMLLl8oL7KEIX2SH5gpHIXc5g5NDv8paTAn8nLV9hhxUIwih3XnxXtRK26Wb3Dh2W6cBR3HgP9JU7UDB+aFcJeqiXr+PcO2OrTtxMi2T3HRqV/C6DRCixsuEkbvt0FOGk91EcRozPSqn8=
+  on:
+    tags: true
+    repo: noflo/noflo-routers
