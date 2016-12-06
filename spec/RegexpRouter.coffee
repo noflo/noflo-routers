@@ -1,9 +1,10 @@
 noflo = require 'noflo'
 unless noflo.isBrowser()
-  chai = require 'chai' unless chai
-  RegexpRouter = require '../components/RegexpRouter.coffee'
+  chai = require 'chai'
+  path = require 'path'
+  baseDir = path.resolve __dirname, '../'
 else
-  RegexpRouter = require 'noflo-routers/components/RegexpRouter.js'
+  baseDir = 'noflo-routers'
 
 describe 'RegexpRouter component', ->
   c = null
@@ -15,23 +16,30 @@ describe 'RegexpRouter component', ->
   outB = null
   missedOut = null
   routesOut = null
+  loader = null
 
-  beforeEach ->
-    c = RegexpRouter.getComponent()
-    ins = noflo.internalSocket.createSocket()
-    routesIns = noflo.internalSocket.createSocket()
-    resetIns = noflo.internalSocket.createSocket()
-    sendTopLevel = noflo.internalSocket.createSocket()
-    outA = noflo.internalSocket.createSocket()
-    outB = noflo.internalSocket.createSocket()
-    missedOut = noflo.internalSocket.createSocket()
-    routesOut = noflo.internalSocket.createSocket()
-    c.inPorts.in.attach ins
-    c.inPorts.route.attach routesIns
-    c.inPorts.reset.attach resetIns
-    c.inPorts.sendtoplevel.attach sendTopLevel
-    c.outPorts.missed.attach missedOut
-    c.outPorts.route.attach routesOut
+  before ->
+    loader = new noflo.ComponentLoader baseDir
+  beforeEach (done) ->
+    @timeout 4000
+    loader.load 'routers/RegexpRouter', (err, instance) ->
+      return done err if err
+      c = instance
+      ins = noflo.internalSocket.createSocket()
+      routesIns = noflo.internalSocket.createSocket()
+      resetIns = noflo.internalSocket.createSocket()
+      sendTopLevel = noflo.internalSocket.createSocket()
+      outA = noflo.internalSocket.createSocket()
+      outB = noflo.internalSocket.createSocket()
+      missedOut = noflo.internalSocket.createSocket()
+      routesOut = noflo.internalSocket.createSocket()
+      c.inPorts.in.attach ins
+      c.inPorts.route.attach routesIns
+      c.inPorts.reset.attach resetIns
+      c.inPorts.sendtoplevel.attach sendTopLevel
+      c.outPorts.missed.attach missedOut
+      c.outPorts.route.attach routesOut
+      done()
 
   describe 'when instantiated', ->
     it 'should have an input port', ->

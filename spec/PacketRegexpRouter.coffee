@@ -1,17 +1,24 @@
 noflo = require 'noflo'
 unless noflo.isBrowser()
-  chai = require 'chai' unless chai
-  PacketRegexpRouter = require '../components/PacketRegexpRouter.coffee'
+  chai = require 'chai'
+  path = require 'path'
+  baseDir = path.resolve __dirname, '../'
 else
-  PacketRegexpRouter = require 'noflo-routers/components/PacketRegexpRouter.js'
-
+  baseDir = 'noflo-routers'
 
 describe 'PacketRegexpRouter', ->
 
   router = null
+  loader = null
 
-  beforeEach ->
-    router = PacketRegexpRouter.getComponent()
+  before ->
+    loader = new noflo.ComponentLoader baseDir
+  beforeEach (done) ->
+    @timeout 4000
+    loader.load 'routers/PacketRegexpRouter', (err, instance) ->
+      return done err if err
+      router = instance
+      done()
 
   describe 'available ports', ->
 

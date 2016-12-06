@@ -1,18 +1,27 @@
 noflo = require 'noflo'
 unless noflo.isBrowser()
-  chai = require 'chai' unless chai
-  SplitInSequence = require '../components/SplitInSequence.coffee'
+  chai = require 'chai'
+  path = require 'path'
+  baseDir = path.resolve __dirname, '../'
 else
-  SplitInSequence = require 'noflo-routers/components/SplitInSequence.js'
+  baseDir = 'noflo-routers'
 
 describe 'SplitInSequence component', ->
   c = null
   ins = null
   out = null
-  beforeEach ->
-    c = SplitInSequence.getComponent()
-    ins = noflo.internalSocket.createSocket()
-    c.inPorts.in.attach ins
+  loader = null
+
+  before ->
+    loader = new noflo.ComponentLoader baseDir
+  beforeEach (done) ->
+    @timeout 4000
+    loader.load 'routers/SplitInSequence', (err, instance) ->
+      return done err if err
+      c = instance
+      ins = noflo.internalSocket.createSocket()
+      c.inPorts.in.attach ins
+      done()
 
   describe 'when instantiated', ->
     it 'should have an input port', ->
