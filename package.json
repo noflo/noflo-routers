@@ -29,21 +29,11 @@
     "grunt-mocha-phantomjs": "^4.0.0",
     "grunt-mocha-test": "^0.13.2",
     "grunt-noflo-browser": "^1.0.1",
-    "grunt-noflo-manifest": "^0.1.12",
     "json-loader": "^0.5.4",
     "mocha": "^3.2.0"
   },
   "noflo": {
-    "icon": "code-fork",
-    "components": {
-      "ControlledSequence": "components/ControlledSequence.coffee",
-      "GroupRouter": "components/GroupRouter.coffee",
-      "KickRouter": "components/KickRouter.coffee",
-      "PacketRegexpRouter": "components/PacketRegexpRouter.coffee",
-      "PacketRouter": "components/PacketRouter.coffee",
-      "RegexpRouter": "components/RegexpRouter.coffee",
-      "SplitInSequence": "components/SplitInSequence.coffee"
-    }
+    "icon": "code-fork"
   },
   "scripts": {
     "test": "grunt test"
