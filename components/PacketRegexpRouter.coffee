@@ -1,5 +1,4 @@
 noflo = require("noflo")
-_ = require("underscore")
 
 exports.getComponent = ->
   c = new noflo.Component
