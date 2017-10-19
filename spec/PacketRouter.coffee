@@ -42,42 +42,35 @@ describe 'PacketRouter component', ->
     c.outPorts.out.attach outA
     c.outPorts.out.attach outB
 
-    expectedMissed = ["c", "d"]
+    expected = [
+      'a a'
+      'b b'
+      'missed c'
+      'missed d'
+    ]
+    received = []
 
     outA.on "data", (data) ->
-      chai.expect(data).to.equal "a"
-
-    outB.on "data", (data) ->
-      chai.expect(data).to.equal "b"
-
-    missedOut.on "data", (data) ->
-      chai.expect(data).to.equal expectedMissed.shift()
-    missedOut.on "disconnect", ->
+      received.push "a #{data}"
+      return unless received.length is expected.length
+      chai.expect(received).to.eql expected
       done()
 
-    ins.connect()
+    outB.on "data", (data) ->
+      received.push "b #{data}"
+      return unless received.length is expected.length
+      chai.expect(received).to.eql expected
+      done()
+
+    missedOut.on "data", (data) ->
+      received.push "missed #{data}"
+      return unless received.length is expected.length
+      chai.expect(received).to.eql expected
+      done()
+
+    ins.beginGroup()
     ins.send("a")
     ins.send("b")
     ins.send("c")
-    ins.disconnect()
-
-  it "router still connects to unmatched ports", (done) ->
-    c.outPorts.out.attach outA
-    c.outPorts.out.attach outB
-    c.outPorts.out.attach outC
-
-    outA.on "data", (data) ->
-      chai.expect(data).to.equal 1
-    outB.on "data", (data) ->
-      chai.expect(data).to.equal 2
-    outC.on "data", (data) ->
-      chai.expect(data).to.equal null
-    outA.on "disconnect", ->
-    outB.on "disconnect", ->
-    outC.on "disconnect", ->
-      done()
-
-    ins.connect()
-    ins.send(1)
-    ins.send(2)
-    ins.disconnect()
+    ins.send("d")
+    ins.endGroup()
