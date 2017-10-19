@@ -1,30 +1,26 @@
 noflo = require 'noflo'
 
-class SplitInSequence extends noflo.Component
-  constructor: ->
-    @lastSent = null
-
-    @inPorts =
-      in: new noflo.Port
-    @outPorts =
-      out: new noflo.ArrayPort
-
-    @inPorts.in.on 'data', (data) =>
-      @sendToPort @portId(), data
-
-    @inPorts.in.on 'disconnect', =>
-      @outPorts.out.disconnect()
-
-  portId: ->
-    if @lastSent is null
-      return 0
-    next = @lastSent + 1
-    if next > @outPorts.out.sockets.length - 1
-      return 0
-    return next
-     
-  sendToPort: (portId, data) ->
-    @outPorts.out.send data, portId
-    @lastSent = portId
-
-exports.getComponent = -> new SplitInSequence
+exports.getComponent = ->
+  c = new noflo.Component
+  c.description = 'Send each packet to one outport connection in sequence'
+  c.inPorts.add 'in',
+    datatype: 'all'
+  c.outPorts.add 'out',
+    datatype: 'all'
+    addressable: true
+  c.current = 0
+  c.tearDown = (callback) ->
+    c.current = 0
+    do callback
+  c.process (input, output) ->
+    return unless input.hasData 'in'
+    packet = new noflo.IP 'data', input.getData 'in'
+    attached = c.outPorts.out.listAttached()
+    packet.index = attached[c.current]
+    output.send
+      out: packet
+    c.current++
+    if c.current >= c.outPorts.out.listAttached().length
+      c.current = 0
+    output.done()
+    return
