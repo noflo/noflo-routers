@@ -37,8 +37,7 @@ describe 'SplitInSequence component', ->
 
     out.on 'data', (data) ->
       chai.expect(data).to.equal expects.shift()
-
-    out.on 'disconnect', ->
+      return if expects.length
       done()
 
     ins.send data for data in sends

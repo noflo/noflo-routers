@@ -1,28 +1,35 @@
 noflo = require 'noflo'
 
-class ControlledSequence extends noflo.Component
-  constructor: ->
-    @current = 0
-    @inPorts =
-      in: new noflo.Port 'all'
-      next: new noflo.Port 'bang'
-    @outPorts =
-      out: new noflo.ArrayPort 'all'
-
-    @inPorts.in.on 'begingroup', (group) =>
-      @outPorts.out.beginGroup group, @current
-    @inPorts.in.on 'data', (data) =>
-      @outPorts.out.send data, @current
-    @inPorts.in.on 'endgroup', =>
-      @outPorts.out.endGroup @current
-    @inPorts.in.on 'disconnect', =>
-      @outPorts.out.disconnect @current
-
-    @inPorts.next.on 'data', =>
-      @outPorts.out.disconnect @current
-      if @current < @outPorts.out.sockets.length - 1
-        @current++
-        return
-      @current = 0
-
-exports.getComponent = -> new ControlledSequence
+exports.getComponent = ->
+  c = new noflo.Component
+  c.description = 'Switch output to new connection every time "next" is sent'
+  c.inPorts.add 'in',
+    datatype: 'all'
+  c.inPorts.add 'next',
+    datatype: 'bang'
+  c.outPorts.add 'out',
+    datatype: 'all'
+    addressable: true
+  c.current = {}
+  c.tearDown = (callback) ->
+    c.current = {}
+    do callback
+  c.forwardBrackets = {}
+  c.process (input, output) ->
+    if input.hasData 'next'
+      input.getData 'next'
+      unless c.current[input.scope]
+        c.current[input.scope] = 0
+      c.current[input.scope]++
+      if c.current[input.scope] >= c.outPorts.out.listAttached().length
+        c.current[input.scope] = 0
+      output.done()
+      return
+    return unless input.has 'in'
+    unless c.current[input.scope]
+      c.current[input.scope] = 0
+    packet = input.get 'in'
+    attached = c.outPorts.out.listAttached()
+    packet.index = attached[c.current[input.scope]]
+    output.sendDone
+      out: packet
