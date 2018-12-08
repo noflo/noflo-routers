@@ -1,41 +1,33 @@
-noflo = require 'noflo'
-unless noflo.isBrowser()
-  chai = require 'chai'
-  path = require 'path'
-  baseDir = path.resolve __dirname, '../'
-else
-  baseDir = 'noflo-routers'
-
-receive = (outs, missedOut, expected, done) ->
-  received = []
-  outs.forEach (socket, idx) ->
-    socket.on 'begingroup', (group) ->
-      received.push "#{idx} < #{group}"
-    socket.on 'data', (data) ->
-      received.push "#{idx} DATA #{data}"
-      return unless received.length is expected.length
-      chai.expect(received).to.eql expected
-      done()
-    socket.on 'endgroup', (group) ->
-      received.push "#{idx} > #{group}"
-      return unless received.length is expected.length
-      chai.expect(received).to.eql expected
-      done()
-  if missedOut
-    missedOut.on 'begingroup', (group) ->
-      received.push "MISSED < #{group}"
-    missedOut.on 'data', (data) ->
-      received.push "MISSED DATA #{data}"
-      return unless received.length is expected.length
-      chai.expect(received).to.eql expected
-      done()
-    missedOut.on 'endgroup', (group) ->
-      received.push "MISSED >"
-      return unless received.length is expected.length
-      chai.expect(received).to.eql expected
-      done()
-
 describe 'GroupRouter component', ->
+  receive = (outs, missedOut, expected, done) ->
+    received = []
+    outs.forEach (socket, idx) ->
+      socket.on 'begingroup', (group) ->
+        received.push "#{idx} < #{group}"
+      socket.on 'data', (data) ->
+        received.push "#{idx} DATA #{data}"
+        return unless received.length is expected.length
+        chai.expect(received).to.eql expected
+        done()
+      socket.on 'endgroup', (group) ->
+        received.push "#{idx} > #{group}"
+        return unless received.length is expected.length
+        chai.expect(received).to.eql expected
+        done()
+    if missedOut
+      missedOut.on 'begingroup', (group) ->
+        received.push "MISSED < #{group}"
+      missedOut.on 'data', (data) ->
+        received.push "MISSED DATA #{data}"
+        return unless received.length is expected.length
+        chai.expect(received).to.eql expected
+        done()
+      missedOut.on 'endgroup', (group) ->
+        received.push "MISSED >"
+        return unless received.length is expected.length
+        chai.expect(received).to.eql expected
+        done()
+
   c = null
   routeIns = null
   routesIns = null

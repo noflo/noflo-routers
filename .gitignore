@@ -6,4 +6,8 @@ node_modules/
 npm-debug.log
 components/*/
 spec/*.xml
+spec/*.js
 spec/runner.html
+dist/
+package-lock.json
+fbp.json
