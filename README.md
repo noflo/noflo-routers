@@ -10,5 +10,5 @@ incorporate as soon as time allows.
 
 ## Changes
 
-* 0.5.0 (git master)
+* 0.5.0 (2020-09-18)
   - Ported to ES6
