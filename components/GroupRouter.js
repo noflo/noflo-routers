@@ -1,26 +1,21 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const noflo = require('noflo');
 
 // Re-evaluate whether there is a route match. There could only be one match at
 // most. Returns the match object.
-const matchRoute = function (breadcrumbs, routes) {
-  for (let index = 0; index < routes.length; index++) {
+function matchRoute(breadcrumbs, routes) {
+  for (let index = 0; index < routes.length; index += 1) {
     const route = routes[index];
     let matched = true;
 
     // Doesn't match if breadcrumbs is shorter than route's requirement
     if (route.length > breadcrumbs.length) {
       matched = false;
+      // eslint-disable-next-line no-continue
       continue;
     }
 
     // Doesn't match if any of the breadcrumbs doesn't match that of the route
-    for (let step = 0; step < breadcrumbs.length; step++) {
+    for (let step = 0; step < breadcrumbs.length; step += 1) {
       const group = breadcrumbs[step];
       if (!group.match(route[step])) {
         matched = false;
@@ -41,12 +36,11 @@ const matchRoute = function (breadcrumbs, routes) {
 
   // An empty object for no match
   return {};
-};
+}
 
-exports.getComponent = function () {
+exports.getComponent = () => {
   const component = new noflo.Component();
-  component.description = 'routes IPs based on groups, which are matched and \
-routed but not removed when forwarding';
+  component.description = 'routes IPs based on groups, which are matched and routed but not removed when forwarding';
   component.inPorts.add('route', {
     datatype: 'array',
     description: 'Array of route segments',
@@ -121,7 +115,7 @@ routed but not removed when forwarding';
       if (typeof payload === 'string') {
         scope.routes.push([new RegExp(payload)]);
         output.done();
-        reurn;
+        return;
       }
       output.done(new Error('Route must be array of segments'));
       return;
@@ -140,9 +134,9 @@ routed but not removed when forwarding';
     scope = prepareScope(input.scope);
     const packet = input.get('in');
     switch (packet.type) {
-      case 'openBracket':
+      case 'openBracket': {
         // Update where we are
-        var bracketResult = { group: packet.data };
+        const bracketResult = { group: packet.data };
         scope.breadcrumbs.push(bracketResult);
 
         // Forward group if we are in a match
@@ -153,7 +147,10 @@ routed but not removed when forwarding';
         }
 
         // Try to match
-        scope.match = matchRoute(scope.breadcrumbs.map((breadcrumb) => breadcrumb.group), scope.routes);
+        scope.match = matchRoute(
+          scope.breadcrumbs.map((breadcrumb) => breadcrumb.group),
+          scope.routes,
+        );
 
         // There is a match. Notify downstream if connected
         if (scope.match.route != null) {
@@ -165,10 +162,10 @@ routed but not removed when forwarding';
         bracketResult.missed = true;
         output.sendDone({ missed: packet });
         return;
-
-      case 'closeBracket':
+      }
+      case 'closeBracket': {
         // Update where we are
-        bracketResult = scope.breadcrumbs.pop();
+        const bracketResult = scope.breadcrumbs.pop();
 
         // Forward group if we are in a match
         if (scope.match.level < scope.breadcrumbs.length) {
@@ -191,8 +188,8 @@ routed but not removed when forwarding';
         }
         output.sendDone({ missed: packet });
         return;
-
-      case 'data':
+      }
+      default: {
         if (scope.match.route != null) {
           packet.index = scope.match.index;
           output.sendDone({ out: packet });
@@ -200,6 +197,7 @@ routed but not removed when forwarding';
         }
 
         output.sendDone({ missed: packet });
+      }
     }
   });
 };

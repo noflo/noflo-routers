@@ -1,13 +1,6 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS205: Consider reworking code to avoid use of IIFEs
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const noflo = require('noflo');
 
-exports.getComponent = function () {
+exports.getComponent = () => {
   const c = new noflo.Component();
   c.description = 'Releases a stream to a specified index on prev/next/index';
   c.inPorts.add('in',
@@ -40,17 +33,18 @@ exports.getComponent = function () {
       const idx = attached[c.current[input.scope]];
       return (() => {
         const result = [];
-        for (const packet of Array.from(stream)) {
-          packet.index = idx;
-          result.push(output.send({ out: packet }));
-        }
+        stream.forEach((packet) => {
+          const ip = packet;
+          ip.index = idx;
+          result.push(output.send({ out: ip }));
+        });
         return result;
       })();
     };
 
     if (input.hasData('next')) {
       input.getData('next');
-      c.current[input.scope]++;
+      c.current[input.scope] += 1;
       if (c.current[input.scope] >= c.outPorts.out.listAttached().length) {
         c.current[input.scope] = 0;
       }
@@ -60,7 +54,7 @@ exports.getComponent = function () {
     }
     if (input.hasData('prev')) {
       input.getData('prev');
-      c.current[input.scope]--;
+      c.current[input.scope] -= 1;
       if (c.current[input.scope] < 0) {
         c.current[input.scope] = c.outPorts.out.listAttached().length - 1;
       }
@@ -69,7 +63,7 @@ exports.getComponent = function () {
       return;
     }
     if (input.hasData('index')) {
-      c.current[input.scope] = parseInt(input.getData('index'));
+      c.current[input.scope] = parseInt(input.getData('index'), 10);
       sendToIndex();
       output.done();
     }

@@ -1,13 +1,6 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS205: Consider reworking code to avoid use of IIFEs
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const noflo = require('noflo');
 
-exports.getComponent = function () {
+exports.getComponent = () => {
   const c = new noflo.Component();
   c.description = 'Routes IPs based on position in an incoming IP stream';
   c.inPorts.add('in', {
@@ -29,19 +22,19 @@ exports.getComponent = function () {
       const stream = input.getStream(['in', idx]);
       if ((stream[0].type === 'openBracket') && (stream[0].data === null)) {
         // Remove the surrounding brackets if they're unnamed
-        const before = stream.shift();
-        const after = stream.pop();
+        stream.shift();
+        stream.pop();
       }
       let position = 0;
       const brackets = [];
       let hadData = false;
       return (() => {
         const result = [];
-        for (const packet of Array.from(stream)) {
+        stream.forEach((packet) => {
           if (packet.type === 'openBracket') {
             if (hadData && !brackets.length) {
               // Start of a new substream
-              position++;
+              position += 1;
             }
             brackets.push(packet.data);
           }
@@ -52,23 +45,24 @@ exports.getComponent = function () {
           const attached = c.outPorts.out.listAttached();
           if (attached.indexOf(position) === -1) {
             output.send({ missed: packet });
-            continue;
+            return;
           }
 
-          packet.index = position;
-          output.send({ out: packet });
+          const ip = packet;
+          ip.index = position;
+          output.send({ out: ip });
 
-          if (packet.type === 'data') {
+          if (ip.type === 'data') {
             if (hadData && brackets.length) {
               // Was already advanced by openBracket
-              continue;
+              return;
             }
-            position++;
+            position += 1;
             result.push(hadData = true);
           } else {
             result.push(undefined);
           }
-        }
+        });
         return result;
       })();
     });

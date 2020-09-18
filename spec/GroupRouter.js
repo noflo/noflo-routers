@@ -1,11 +1,5 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 describe('GroupRouter component', () => {
-  const receive = function (outs, missedOut, expected, done) {
+  function receive(outs, missedOut, expected, done) {
     const received = [];
     outs.forEach((socket, idx) => {
       socket.on('begingroup', (group) => received.push(`${idx} < ${group}`));
@@ -13,13 +7,13 @@ describe('GroupRouter component', () => {
         received.push(`${idx} DATA ${data}`);
         if (received.length !== expected.length) { return; }
         chai.expect(received).to.eql(expected);
-        return done();
+        done();
       });
-      return socket.on('endgroup', (group) => {
+      socket.on('endgroup', (group) => {
         received.push(`${idx} > ${group}`);
         if (received.length !== expected.length) { return; }
         chai.expect(received).to.eql(expected);
-        return done();
+        done();
       });
     });
     if (missedOut) {
@@ -28,16 +22,16 @@ describe('GroupRouter component', () => {
         received.push(`MISSED DATA ${data}`);
         if (received.length !== expected.length) { return; }
         chai.expect(received).to.eql(expected);
-        return done();
+        done();
       });
-      return missedOut.on('endgroup', (group) => {
+      missedOut.on('endgroup', () => {
         received.push('MISSED >');
         if (received.length !== expected.length) { return; }
         chai.expect(received).to.eql(expected);
-        return done();
+        done();
       });
     }
-  };
+  }
 
   let c = null;
   let routeIns = null;
@@ -49,11 +43,16 @@ describe('GroupRouter component', () => {
   let missedOut = null;
   let loader = null;
 
-  before(() => loader = new noflo.ComponentLoader(baseDir));
+  before(() => {
+    loader = new noflo.ComponentLoader(baseDir);
+  });
   beforeEach(function (done) {
     this.timeout(4000);
-    return loader.load('routers/GroupRouter', (err, instance) => {
-      if (err) { return done(err); }
+    loader.load('routers/GroupRouter', (err, instance) => {
+      if (err) {
+        done(err);
+        return;
+      }
       c = instance;
       ins = noflo.internalSocket.createSocket();
       routeIns = noflo.internalSocket.createSocket();
@@ -72,10 +71,10 @@ describe('GroupRouter component', () => {
       c.inPorts.reset.attach(resetIns);
       c.outPorts.route.attach(routeOut);
       c.outPorts.missed.attach(missedOut);
-      for (const socket of Array.from(outs)) {
+      outs.forEach((socket) => {
         c.outPorts.out.attach(socket);
-      }
-      return done();
+      });
+      done();
     });
   });
 
@@ -83,12 +82,12 @@ describe('GroupRouter component', () => {
     it('should have an input port', () => {
       chai.expect(c.inPorts.in).to.be.an('object');
       chai.expect(c.inPorts.route).to.be.an('object');
-      return chai.expect(c.inPorts.reset).to.be.an('object');
+      chai.expect(c.inPorts.reset).to.be.an('object');
     });
-    return it('should have an output port', () => {
+    it('should have an output port', () => {
       chai.expect(c.outPorts.out).to.be.an('object');
       chai.expect(c.outPorts.route).to.be.an('object');
-      return chai.expect(c.outPorts.missed).to.be.an('object');
+      chai.expect(c.outPorts.missed).to.be.an('object');
     });
   });
 
@@ -147,7 +146,7 @@ describe('GroupRouter component', () => {
       ins.send('e');
       ins.endGroup('ea');
       ins.endGroup('a');
-      return ins.disconnect();
+      ins.disconnect();
     });
 
     it('matched groups are stripped', (done) => {
@@ -172,7 +171,7 @@ describe('GroupRouter component', () => {
       ins.endGroup('c');
       ins.endGroup('b');
       ins.endGroup('a');
-      return ins.disconnect();
+      ins.disconnect();
     });
 
     it('the matched path will also be output', (done) => {
@@ -191,10 +190,10 @@ describe('GroupRouter component', () => {
       ins.endGroup('c');
       ins.endGroup('b');
       ins.endGroup('a');
-      return ins.disconnect();
+      ins.disconnect();
     });
 
-    return it('reset the routes', (done) => {
+    it('reset the routes', (done) => {
       const expected = [
         'MISSED < a',
         'MISSED < b',
@@ -226,13 +225,13 @@ describe('GroupRouter component', () => {
       ins.beginGroup('c');
       ins.send('abc');
       ins.endGroup('c');
-      return ins.disconnect();
+      ins.disconnect();
     });
   });
 
   // # Test for compatbility with legacy GroupRouter. Do not use these as examples.
 
-  return describe('legacy test', () => {
+  describe('legacy test', () => {
     it('test routing error', (done) => {
       const expected = [
         'MISSED < baz',
@@ -246,7 +245,7 @@ describe('GroupRouter component', () => {
       ins.beginGroup('baz');
       ins.send('hello');
       ins.endGroup();
-      return ins.disconnect();
+      ins.disconnect();
     });
 
     it('test routing success', (done) => {
@@ -259,7 +258,7 @@ describe('GroupRouter component', () => {
       ins.beginGroup('bar');
       ins.send('hello');
       ins.endGroup();
-      return ins.disconnect();
+      ins.disconnect();
     });
 
     it('test routing subgroup error', (done) => {
@@ -275,7 +274,7 @@ describe('GroupRouter component', () => {
       ins.beginGroup('bar');
       ins.send('hello');
       ins.endGroup();
-      return ins.disconnect();
+      ins.disconnect();
     });
 
     it('test routing subgroup success', (done) => {
@@ -293,7 +292,7 @@ describe('GroupRouter component', () => {
       ins.send('hello');
       ins.endGroup();
       ins.endGroup();
-      return ins.disconnect();
+      ins.disconnect();
     });
 
     it('test routing group wildcards', (done) => {
@@ -307,7 +306,7 @@ describe('GroupRouter component', () => {
       ins.beginGroup('baz');
       ins.send('hello');
       ins.endGroup();
-      return ins.disconnect();
+      ins.disconnect();
     });
 
     it('test routing subgroup wildcards', (done) => {
@@ -325,10 +324,10 @@ describe('GroupRouter component', () => {
       ins.send('hello');
       ins.endGroup();
       ins.endGroup();
-      return ins.disconnect();
+      ins.disconnect();
     });
 
-    return it('test routing primary group wildcards', (done) => {
+    it('test routing primary group wildcards', (done) => {
       routesIns.send('foo:baz,.*:baz');
       const expected = [
         'MISSED < bar',
@@ -342,7 +341,7 @@ describe('GroupRouter component', () => {
       ins.send('hello');
       ins.endGroup();
       ins.endGroup();
-      return ins.disconnect();
+      ins.disconnect();
     });
   });
 });

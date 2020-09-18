@@ -1,11 +1,6 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const noflo = require('noflo');
 
-exports.getComponent = function () {
+exports.getComponent = () => {
   const c = new noflo.Component();
   c.description = 'Switch output to new connection every time "next" is sent';
   c.inPorts.add('in',
@@ -28,7 +23,7 @@ exports.getComponent = function () {
       if (!c.current[input.scope]) {
         c.current[input.scope] = 0;
       }
-      c.current[input.scope]++;
+      c.current[input.scope] += 1;
       if (c.current[input.scope] >= c.outPorts.out.listAttached().length) {
         c.current[input.scope] = 0;
       }
@@ -42,6 +37,6 @@ exports.getComponent = function () {
     const packet = input.get('in');
     const attached = c.outPorts.out.listAttached();
     packet.index = attached[c.current[input.scope]];
-    return output.sendDone({ out: packet });
+    output.sendDone({ out: packet });
   });
 };

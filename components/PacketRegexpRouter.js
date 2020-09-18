@@ -1,15 +1,8 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const noflo = require('noflo');
 
 exports.getComponent = function () {
   const c = new noflo.Component();
-  c.description = 'Route IPs based on RegExp match on the IP content (strings \
-only). The position of the RegExp determines which port to forward to.';
+  c.description = 'Route IPs based on RegExp match on the IP content (strings only). The position of the RegExp determines which port to forward to.';
   c.inPorts.add('in',
     { datatype: 'string' });
   c.inPorts.add('route', {
@@ -26,7 +19,6 @@ only). The position of the RegExp determines which port to forward to.';
     { datatype: 'object' });
   c.forwardBrackets = { in: ['out', 'missed'] };
   return c.process((input, output) => {
-    let idx;
     if (!input.hasData('in', 'route')) { return; }
     const routes = input.getData('route');
     if (!Array.isArray(routes)) {
@@ -34,16 +26,20 @@ only). The position of the RegExp determines which port to forward to.';
       return;
     }
     const regexps = [];
-    for (const route of Array.from(routes)) {
+    let errored;
+    routes.forEach((route) => {
       if (typeof route === 'string') {
         regexps.push(new RegExp(route));
-        continue;
+        return;
       }
       if (route instanceof RegExp) {
         regexps.push(route);
-        continue;
+        return;
       }
-      output.done(new Error('Route array can only contain strings or RegExps'));
+      errored = new Error('Route array can only contain strings or RegExps');
+    });
+    if (errored) {
+      output.done(errored);
       return;
     }
 
@@ -53,7 +49,7 @@ only). The position of the RegExp determines which port to forward to.';
       return;
     }
     const matchedIndexes = [];
-    for (idx = 0; idx < regexps.length; idx++) {
+    for (let idx = 0; idx < regexps.length; idx += 1) {
       const regexp = regexps[idx];
       if (data.match(regexp)) { matchedIndexes.push(idx); }
     }
@@ -61,12 +57,12 @@ only). The position of the RegExp determines which port to forward to.';
       output.sendDone({ missed: data });
       return;
     }
-    for (idx of Array.from(matchedIndexes)) {
+    matchedIndexes.forEach((idx) => {
       output.send({
         out: new noflo.IP('data', data,
           { index: idx }),
       });
-    }
+    });
     output.done();
   });
 };

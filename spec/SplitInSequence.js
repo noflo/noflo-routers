@@ -1,30 +1,29 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 describe('SplitInSequence component', () => {
   let c = null;
   let ins = null;
   let out = null;
   let loader = null;
 
-  before(() => loader = new noflo.ComponentLoader(baseDir));
+  before(() => {
+    loader = new noflo.ComponentLoader(baseDir);
+  });
   beforeEach(function (done) {
     this.timeout(4000);
-    return loader.load('routers/SplitInSequence', (err, instance) => {
-      if (err) { return done(err); }
+    loader.load('routers/SplitInSequence', (err, instance) => {
+      if (err) {
+        done(err);
+        return;
+      }
       c = instance;
       ins = noflo.internalSocket.createSocket();
       c.inPorts.in.attach(ins);
-      return done();
+      done();
     });
   });
 
   describe('when instantiated', () => {
     it('should have an input port', () => chai.expect(c.inPorts.in).to.be.an('object'));
-    return it('should have an output port', () => chai.expect(c.outPorts.out).to.be.an('object'));
+    it('should have an output port', () => chai.expect(c.outPorts.out).to.be.an('object'));
   });
 
   it('test sending to single outport', (done) => {
@@ -36,14 +35,14 @@ describe('SplitInSequence component', () => {
     out.on('data', (data) => {
       chai.expect(data).to.equal(expects.shift());
       if (expects.length) { return; }
-      return done();
+      done();
     });
 
-    for (const data of Array.from(sends)) { ins.send(data); }
-    return ins.disconnect();
+    sends.forEach((val) => ins.send(val));
+    ins.disconnect();
   });
 
-  return it('test sending to three outports', (done) => {
+  it('test sending to three outports', (done) => {
     const sends = [1, 2, 3, 4, 5, 6];
     const outs = [{
       socket: noflo.internalSocket.createSocket(),
@@ -60,20 +59,22 @@ describe('SplitInSequence component', () => {
     ];
 
     let disconnected = 0;
-    outs.forEach((out) => {
-      c.outPorts.out.attach(out.socket);
+    outs.forEach((outSocket) => {
+      c.outPorts.out.attach(outSocket.socket);
 
-      out.socket.on('data', (data) => {
-        chai.expect(out.expects.length).to.be.ok;
-        return chai.expect(data).to.equal(out.expects.shift());
+      outSocket.socket.on('data', (data) => {
+        chai.expect(outSocket.expects.length).to.be.above(0);
+        chai.expect(data).to.equal(outSocket.expects.shift());
       });
-      return out.socket.on('disconnect', () => {
-        disconnected++;
-        if (disconnected === outs.length) { return done(); }
+      outSocket.socket.on('disconnect', () => {
+        disconnected += 1;
+        if (disconnected === outs.length) {
+          done();
+        }
       });
     });
 
-    for (const send of Array.from(sends)) { ins.send(send); }
-    return ins.disconnect();
+    sends.forEach((val) => ins.send(val));
+    ins.disconnect();
   });
 });

@@ -7,8 +7,10 @@
     "mocha": true
   },
   "globals": {
-    "chai": "readonly",
-    "noflo": "readonly"
+    "baseDir": false,
+    "chai": false,
+    "noflo": false,
+    "window": false
   },
   "rules": {
     "func-names": 0,

@@ -1,43 +1,40 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 describe('PacketRouter component', () => {
   let c = null;
   let ins = null;
   let outA = null;
   let outB = null;
-  let outC = null;
   let missedOut = null;
   let loader = null;
 
-  before(() => loader = new noflo.ComponentLoader(baseDir));
+  before(() => {
+    loader = new noflo.ComponentLoader(baseDir);
+  });
   beforeEach(function (done) {
     this.timeout(4000);
-    return loader.load('routers/PacketRouter', (err, instance) => {
-      if (err) { return done(err); }
+    loader.load('routers/PacketRouter', (err, instance) => {
+      if (err) {
+        done(err);
+      }
       c = instance;
       ins = noflo.internalSocket.createSocket();
       outA = noflo.internalSocket.createSocket();
       outB = noflo.internalSocket.createSocket();
-      outC = noflo.internalSocket.createSocket();
       missedOut = noflo.internalSocket.createSocket();
       c.inPorts.in.attach(ins);
       c.outPorts.missed.attach(missedOut);
-      return done();
+      done();
     });
   });
 
   describe('when instantiated', () => {
     it('should have an input port', () => chai.expect(c.inPorts.in).to.be.an('object'));
-    return it('should have an output port', () => {
+    it('should have an output port', () => {
       chai.expect(c.outPorts.out).to.be.an('object');
-      return chai.expect(c.outPorts.missed).to.be.an('object');
+      chai.expect(c.outPorts.missed).to.be.an('object');
     });
   });
 
-  return it('routes incoming IPs based on IP stream position', (done) => {
+  it('routes incoming IPs based on IP stream position', (done) => {
     c.outPorts.out.attach(outA);
     c.outPorts.out.attach(outB);
 
@@ -53,21 +50,21 @@ describe('PacketRouter component', () => {
       received.push(`a ${data}`);
       if (received.length !== expected.length) { return; }
       chai.expect(received).to.eql(expected);
-      return done();
+      done();
     });
 
     outB.on('data', (data) => {
       received.push(`b ${data}`);
       if (received.length !== expected.length) { return; }
       chai.expect(received).to.eql(expected);
-      return done();
+      done();
     });
 
     missedOut.on('data', (data) => {
       received.push(`missed ${data}`);
       if (received.length !== expected.length) { return; }
       chai.expect(received).to.eql(expected);
-      return done();
+      done();
     });
 
     ins.beginGroup();
@@ -75,6 +72,6 @@ describe('PacketRouter component', () => {
     ins.send('b');
     ins.send('c');
     ins.send('d');
-    return ins.endGroup();
+    ins.endGroup();
   });
 });
