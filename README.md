@@ -1,4 +1,4 @@
-Routing Packets in NoFlo [![Build Status](https://secure.travis-ci.org/noflo/noflo-routers.png?branch=master)](https://travis-ci.org/noflo/noflo-routers)
+Routing Packets in NoFlo
 ===============================
 
 Whenever you want to forward an IP to a particular process downstream
@@ -7,3 +7,8 @@ collection of routers for NoFlo.
 
 Feel free to contribute new components and graphs! I'll try to
 incorporate as soon as time allows.
+
+## Changes
+
+* 0.5.0 (git master)
+  - Ported to ES6
