@@ -1,8 +1,13 @@
-const noflo = require('noflo');
+import { Component } from "@noflo/noflo";
 
-// Re-evaluate whether there is a route match. There could only be one match at
-// most. Returns the match object.
-function matchRoute(breadcrumbs, routes) {
+/**
+ * Re-evaluates whether there is a route match. There could only be one
+ * match at most. Returns the match object.
+ * @param {string[]} breadcrumbs
+ * @param {RegExp[][]} routes
+ * @returns {{ index: number|null, route: RegExp[]|null, level: number|null }}
+ */
+const matchRoute = (breadcrumbs, routes) => {
   for (let index = 0; index < routes.length; index += 1) {
     const route = routes[index];
     let matched = true;
@@ -10,7 +15,6 @@ function matchRoute(breadcrumbs, routes) {
     // Doesn't match if breadcrumbs is shorter than route's requirement
     if (route.length > breadcrumbs.length) {
       matched = false;
-      // eslint-disable-next-line no-continue
       continue;
     }
 
@@ -35,163 +39,174 @@ function matchRoute(breadcrumbs, routes) {
   }
 
   // An empty object for no match
-  return {};
-}
+  return { index: null, route: null, level: null };
+};
 
-exports.getComponent = () => {
-  const component = new noflo.Component();
-  component.description = 'routes IPs based on groups, which are matched and routed but not removed when forwarding';
-  component.inPorts.add('route', {
-    datatype: 'array',
-    description: 'Array of route segments',
-  });
-  component.inPorts.add('routes', {
-    datatype: 'string',
-    description: 'Comma-separated list of route segments',
-  });
-  component.inPorts.add('reset', {
-    datatype: 'bang',
-    description: 'Remove configured routes',
-  });
-  component.inPorts.add('in', {
-    datatype: 'all',
-    description: 'Data to be routed by its groups',
-  });
-  component.outPorts.add('out', {
-    datatype: 'all',
-    addressable: true,
-  });
-  component.outPorts.add('route',
-    { datatype: 'string' });
-  component.outPorts.add('missed',
-    { datatype: 'all' });
-  component.outPorts.add('error',
-    { datatype: 'object' });
-
-  component.scopes = {};
-  const prepareScope = function (scope) {
-    if (component.scopes[scope]) {
-      return component.scopes[scope];
-    }
-    component.scopes[scope] = {
-      // Registered routes
-      routes: [],
-      // Where we are
-      breadcrumbs: [],
-      // Object describing the match
-      match: {
-        // The matching route's index in the routes array
-        index: null,
-        // A reference to the matching route for convenience
-        route: null,
-        // Where the match occurred (the "level" within breadcrumbs)
-        level: null,
+/**
+ * Routes IPs based on groups, which are matched and routed but not
+ * removed when forwarding. The 1.x implementation's per-bracket
+ * `missed` object flags are dead state — whenever the closeBracket
+ * path reaches the no-match branch, the paired open bracket was also
+ * unmatched, so the close forwards to missed as well.
+ * @returns {import("@noflo/noflo").Component} The configured component
+ */
+export function getComponent() {
+  const c = new Component({
+    description:
+      "routes IPs based on groups, which are matched and routed but not removed when forwarding",
+    forwardBrackets: {},
+    inPorts: {
+      route: {
+        datatype: "array",
+        description: "Array of route segments",
       },
-    };
-    return component.scopes[scope];
+      routes: {
+        datatype: "string",
+        description: "Comma-separated list of route segments",
+      },
+      reset: {
+        datatype: "bang",
+        description: "Remove configured routes",
+      },
+      in: {
+        datatype: "all",
+        description: "Data to be routed by its groups",
+        required: true,
+      },
+    },
+    outPorts: {
+      route: { datatype: "string" },
+      out: { datatype: "all" },
+      missed: { datatype: "all" },
+      error: { datatype: "object" },
+    },
+  });
+
+  /**
+   * @typedef {Object} RouterScope
+   * @property {RegExp[][]} routes
+   * @property {string[]} breadcrumbs
+   * @property {{ index: number|null, route: RegExp[]|null, level: number|null }} match
+   */
+
+  /** @type {Map<string, RouterScope>} */
+  const scopes = new Map();
+  c.tearDown = async () => {
+    scopes.clear();
   };
-  component.tearDown = function (callback) {
-    component.scopes = {};
-    return callback();
+
+  /**
+   * @param {string|null} scope
+   * @returns {RouterScope}
+   */
+  const prepareScope = (scope) => {
+    const key = scope ?? "null";
+    let state = scopes.get(key);
+    if (!state) {
+      state = {
+        routes: [],
+        breadcrumbs: [],
+        match: { index: null, route: null, level: null },
+      };
+      scopes.set(key, state);
+    }
+    return state;
   };
-  component.forwardBrackets = {};
-  return component.process((input, output) => {
-    let payload; let
-      scope;
-    if (input.hasData('reset')) {
-      input.getData('reset');
-      delete component.scopes[input.scope];
+
+  c.process((input, output) => {
+    if (input.hasData("reset")) {
+      input.getData("reset");
+      scopes.delete(input.scope ?? "null");
       output.done();
       return;
     }
-    if (input.hasData('route')) {
-      scope = prepareScope(input.scope);
-      payload = input.getData('route');
+    if (input.hasData("route")) {
+      const state = prepareScope(input.scope);
+      const payload = input.getData("route");
       if (Array.isArray(payload)) {
-        scope.routes.push(payload.map((segment) => new RegExp(segment)));
+        state.routes.push(payload.map((segment) => new RegExp(segment)));
         output.done();
         return;
       }
-      if (typeof payload === 'string') {
-        scope.routes.push([new RegExp(payload)]);
+      if (typeof payload === "string") {
+        state.routes.push([new RegExp(payload)]);
         output.done();
         return;
       }
-      output.done(new Error('Route must be array of segments'));
+      output.done(new Error("Route must be array of segments"));
       return;
     }
-    if (input.hasData('routes')) {
-      scope = prepareScope(input.scope);
-      payload = input.getData('routes');
-      if (typeof payload !== 'string') {
-        output.done(new Error('Routes list must be a string'));
+    if (input.hasData("routes")) {
+      const state = prepareScope(input.scope);
+      const payload = input.getData("routes");
+      if (typeof payload !== "string") {
+        output.done(new Error("Routes list must be a string"));
+        return;
       }
-      scope.routes = payload.split(',').map((route) => route.split(':').map((segment) => new RegExp(segment)));
+      state.routes = payload
+        .split(",")
+        .map((route) => route.split(":").map((segment) => new RegExp(segment)));
       output.done();
       return;
     }
-    if (!input.has('in')) { return; }
-    scope = prepareScope(input.scope);
-    const packet = input.get('in');
+    if (!input.has("in")) {
+      return;
+    }
+    const state = prepareScope(input.scope);
+    const packet = /** @type {import("@noflo/noflo").IP} */ (input.get("in"));
     switch (packet.type) {
-      case 'openBracket': {
+      case "openBracket": {
         // Update where we are
-        const bracketResult = { group: packet.data };
-        scope.breadcrumbs.push(bracketResult);
+        state.breadcrumbs.push(packet.data);
 
         // Forward group if we are in a match
-        if ((scope.match.level != null) && (scope.match.level < scope.breadcrumbs.length)) {
-          packet.index = scope.match.index;
+        if (
+          state.match.level !== null &&
+          state.match.level < state.breadcrumbs.length
+        ) {
           output.sendDone({ out: packet });
           return;
         }
 
         // Try to match
-        scope.match = matchRoute(
-          scope.breadcrumbs.map((breadcrumb) => breadcrumb.group),
-          scope.routes,
-        );
+        state.match = matchRoute(state.breadcrumbs, state.routes);
 
         // There is a match. Notify downstream if connected
-        if (scope.match.route != null) {
-          output.sendDone({ route: scope.match.route });
+        if (state.match.route !== null) {
+          output.sendDone({ route: state.match.route });
           return;
         }
 
         // Send to missed otherwise
-        bracketResult.missed = true;
         output.sendDone({ missed: packet });
         return;
       }
-      case 'closeBracket': {
+      case "closeBracket": {
         // Update where we are
-        const bracketResult = scope.breadcrumbs.pop();
+        state.breadcrumbs.pop();
 
         // Forward group if we are in a match
-        if (scope.match.level < scope.breadcrumbs.length) {
-          packet.index = scope.match.index;
+        if (
+          state.match.level !== null &&
+          state.match.level < state.breadcrumbs.length
+        ) {
           output.sendDone({ out: packet });
           return;
         }
 
         // *END* a match once we're at the end of a match
-        if (scope.match.level === scope.breadcrumbs.length) {
-          scope.match = {};
+        if (state.match.level === state.breadcrumbs.length) {
+          state.match = { index: null, route: null, level: null };
           output.done();
           return;
         }
 
-        // Send to missed if there is no match
-        if (!bracketResult.missed) {
-          output.done();
-          return;
-        }
+        // Send to missed otherwise
         output.sendDone({ missed: packet });
         return;
       }
       default: {
-        if (scope.match.route != null) {
-          packet.index = scope.match.index;
+        if (state.match.route !== null) {
           output.sendDone({ out: packet });
           return;
         }
@@ -200,4 +215,6 @@ exports.getComponent = () => {
       }
     }
   });
-};
+
+  return c;
+}
